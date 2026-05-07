@@ -86,6 +86,8 @@ class Plugin {
 		if ( is_admin() ) {
 			( new \OSQ\Admin\AdminMenu() )->init();
 			( new \OSQ\Admin\SettingsPage() )->init();
+			( new \OSQ\Admin\AiPromptsPage() )->init();
+			( new \OSQ\Admin\NgwordPage() )->init();
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 		}
 

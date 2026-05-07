@@ -50,6 +50,36 @@ class AdminMenu {
 			30
 		);
 
+		// First submenu: rename the top-level item so it doesn't appear as a duplicate.
+		add_submenu_page(
+			self::MENU_SLUG . '-settings',
+			__( 'OSQ 設定 / Settings', 'osq-stress-check' ),
+			__( '設定', 'osq-stress-check' ),
+			'osq_system_config',
+			self::MENU_SLUG . '-settings',
+			array( $this, 'render_settings' )
+		);
+
+		// Submenu: industry-specific AI prompt editor.
+		add_submenu_page(
+			self::MENU_SLUG . '-settings',
+			__( '業種別AIプロンプト管理 / Industry AI Prompts', 'osq-stress-check' ),
+			__( 'AIプロンプト', 'osq-stress-check' ),
+			'osq_system_config',
+			self::MENU_SLUG . '-ai-prompts',
+			array( $this, 'render_ai_prompts' )
+		);
+
+		// Submenu: NGword list management.
+		add_submenu_page(
+			self::MENU_SLUG . '-settings',
+			__( 'NGワード管理 / NG Word Management', 'osq-stress-check' ),
+			__( 'NGワード', 'osq-stress-check' ),
+			'osq_system_config',
+			self::MENU_SLUG . '-ngwords',
+			array( $this, 'render_ngwords' )
+		);
+
 		// Note: Dashboard, CSV Import, Group Analysis, Individual Responses, and Support
 		// interface menu pages have been removed from the default WP Admin.
 		// These features are now exclusively accessible via the custom standalone portals.
@@ -66,5 +96,29 @@ class AdminMenu {
 		}
 		$settings_page = new SettingsPage();
 		$settings_page->render();
+	}
+
+	/**
+	 * Render the AI Prompts management page.
+	 *
+	 * @return void
+	 */
+	public function render_ai_prompts() {
+		if ( ! current_user_can( 'osq_system_config' ) ) {
+			wp_die( esc_html__( 'Access denied.', 'osq-stress-check' ) );
+		}
+		( new AiPromptsPage() )->render();
+	}
+
+	/**
+	 * Render the NGWord management page.
+	 *
+	 * @return void
+	 */
+	public function render_ngwords() {
+		if ( ! current_user_can( 'osq_system_config' ) ) {
+			wp_die( esc_html__( 'Access denied.', 'osq-stress-check' ) );
+		}
+		( new NgwordPage() )->render();
 	}
 }

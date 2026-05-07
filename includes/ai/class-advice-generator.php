@@ -55,7 +55,7 @@ class AdviceGenerator {
 		// Build user message from stress score summary.
 		$user_message = $this->build_user_message( $response, $age, $tenure_years );
 
-		$client = new OpenAIClient();
+		$client = new OpenaiClient();
 
 		// First attempt.
 		$raw = $client->complete( $system_prompt, $user_message, 600 );

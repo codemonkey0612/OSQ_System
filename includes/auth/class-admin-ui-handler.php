@@ -94,7 +94,7 @@ class AdminUiHandler {
 			wp_send_json_error( array( 'message' => 'unauthorized' ) );
 		}
 
-		$client = new \OSQ\AI\OpenAIClient();
+		$client = new \OSQ\AI\OpenaiClient();
 		$result = $client->test_connection();
 
 		if ( is_wp_error( $result ) ) {

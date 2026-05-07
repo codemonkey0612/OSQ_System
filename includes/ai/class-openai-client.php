@@ -13,12 +13,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Class OpenAIClient
+ * Class OpenaiClient
  *
  * Thin wrapper around the OpenAI Chat Completions API.
  * All communication goes through wp_remote_post() so WordPress HTTP filters apply.
  */
-class OpenAIClient {
+class OpenaiClient {
 
 	const API_URL = 'https://api.openai.com/v1/chat/completions';
 
