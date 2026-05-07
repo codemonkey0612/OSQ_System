@@ -1,0 +1,391 @@
+/**
+ * OSQ Stress Check Frontend Styling.
+ * Main theme for the questionnaire form.
+ */
+
+body {
+    background-color: #f8fafc;
+}
+
+#osq-questionnaire-wrap {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+    color: #334155;
+    line-height: 1.6;
+}
+
+/* Global Progress Wrap (Optional visual if kept) */
+.osq-progress-bar-wrap {
+    margin-bottom: 30px;
+}
+
+.osq-progress-label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #64748b;
+}
+
+.osq-progress-bar {
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.osq-progress-fill {
+    height: 100%;
+    background: #38bdf8;
+    transition: width 0.4s ease;
+}
+
+/* Section Tabs (Progress Steps) */
+.osq-section-tabs {
+    display: flex;
+    border-bottom: 2px solid #e2e8f0;
+    margin-bottom: 40px;
+    overflow-x: auto;
+    gap: 10px;
+}
+
+.osq-tab {
+    flex: 1;
+    padding: 16px 20px;
+    cursor: pointer;
+    border: none;
+    background: #f8fafc;
+    border-radius: 8px 8px 0 0;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    color: #64748b;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.osq-tab:hover {
+    background: #f1f5f9;
+    color: #334155;
+}
+
+.osq-tab.osq-tab--active {
+    background: #eef2ff;
+    color: #4f46e5;
+    border-bottom: 3px solid #4f46e5;
+}
+
+.osq-tab.osq-tab--completed {
+    color: #10b981;
+}
+
+.osq-tab-label {
+    font-size: 15px;
+    text-align: center;
+}
+
+/* Individual Tab Progress Bar */
+.osq-tab-progress-bar {
+    width: 100%;
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.osq-tab-progress-fill {
+    height: 100%;
+    background: #10b981;
+    transition: width 0.4s ease;
+}
+
+.osq-tab.osq-tab--active .osq-tab-progress-fill {
+    background: #4f46e5;
+}
+
+.osq-tab.osq-tab--completed .osq-tab-progress-fill {
+    background: #10b981;
+}
+
+.osq-section {
+    display: none;
+    animation: fadeIn 0.4s;
+}
+
+.osq-section.osq-section--active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.osq-section-title {
+    color: #1e293b;
+    font-size: 24px;
+    margin-bottom: 30px;
+    font-weight: 700;
+}
+
+.osq-options-header {
+    display: none;
+    /* Hide standard headers in favor of clear card text */
+}
+
+.osq-question {
+    padding: 30px 0;
+    border-bottom: 1px dashed #e2e8f0;
+}
+
+.osq-question:last-child {
+    border-bottom: none;
+}
+
+.osq-question__text {
+    margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #0f172a;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.osq-question__number {
+    color: #4f46e5;
+    font-weight: 800;
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 0;
+}
+
+/* Large Clickable Radio Cards */
+.osq-question__options {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.osq-radio-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 10px;
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    position: relative;
+    min-height: 80px;
+}
+
+.osq-radio-card:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.osq-radio-card.selected {
+    border-color: #4f46e5;
+    background: #eef2ff;
+    color: #4f46e5;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+}
+
+.osq-radio-hidden {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.osq-radio-text {
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.osq-form-actions {
+    margin-top: 50px;
+    padding-top: 30px;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.osq-nav-buttons {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.osq-btn {
+    padding: 14px 32px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 16px;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.osq-btn--secondary {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.osq-btn--secondary:hover {
+    background: #e2e8f0;
+    color: #475569;
+}
+
+.osq-btn--primary {
+    background: #4f46e5;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.osq-btn--primary:hover {
+    background: #4338ca;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+}
+
+.osq-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.osq-save-status {
+    text-align: right;
+    margin-top: 10px;
+    color: #10b981;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .osq-question__options {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .osq-question__options {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .osq-question__text {
+        font-size: 16px;
+        line-height: 1.4;
+        margin-bottom: 15px;
+    }
+
+    .osq-question__number {
+        font-size: 15px;
+    }
+
+    .osq-section-tabs {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        border-bottom: none;
+        padding-bottom: 20px;
+    }
+
+    .osq-tab {
+        border-radius: 12px;
+        padding: 12px 10px;
+        border: 2px solid #e2e8f0;
+    }
+
+    .osq-tab.osq-tab--active {
+        border-bottom: 2px solid #4f46e5;
+        background: #eef2ff;
+    }
+
+    .osq-tab-label {
+        font-size: 13px;
+    }
+
+    /* Compact Buttons for Mobile */
+    .osq-form-actions {
+        margin-top: 30px;
+        padding-top: 20px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+
+    .osq-nav-buttons {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .osq-secondary-actions {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+
+    .osq-btn {
+        padding: 12px 10px;
+        font-size: 14px;
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 0;
+        white-space: nowrap;
+    }
+
+    #osq-save-btn {
+        width: 100%;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+    }
+
+    .osq-save-status {
+        text-align: center;
+        margin-top: 10px;
+    }
+
+    .osq-tab-progress-bar {
+        height: 3px;
+    }
+}
+/* Spin animation for loading indicators */
+@keyframes osq-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+.osq-spin {
+    display: inline-block;
+    animation: osq-spin 1s linear infinite;
+}

@@ -1,0 +1,933 @@
+# OSQ Stress Check System Japanese Translation
+msgid ""
+msgstr ""
+"Project-Id-Version: OSQ Stress Check System 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-15 19:20+0500\n"
+"PO-Revision-Date: 2026-02-15 19:20+0500\n"
+"Last-Translator: OSQ System\n"
+"Language-Team: Japanese\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.0.1\n"
+"X-Domain: osq-stress-check\n"
+
+#: includes/class-activator.php:70
+msgid "OSQ Stress Check System requires PHP %1$s or higher. You are running PHP %2$s."
+msgstr "OSQストレスチェックシステムにはPHP %1$s以上が必要です。現在のバージョンは %2$s です。"
+
+#: includes/class-activator.php:80
+msgid "OSQ Stress Check System requires WordPress %1$s or higher. You are running WordPress %2$s."
+msgstr "OSQストレスチェックシステムにはWordPress %1$s以上が必要です。現在のバージョンは %2$s です。"
+
+#: includes/questionnaire/class-question-definitions.php:50
+msgid "非常にそうだ"
+msgstr "非常にそうだ"
+
+#: includes/questionnaire/class-question-definitions.php:51
+msgid "そうだ"
+msgstr "そうだ"
+
+#: includes/questionnaire/class-question-definitions.php:52
+msgid "まあそうだ"
+msgstr "まあそうだ"
+
+#: includes/questionnaire/class-question-definitions.php:53
+msgid "ちがう"
+msgstr "ちがう"
+
+#: templates/auth/login-form.php:18
+msgid "Employee Login"
+msgstr "従業員ログイン"
+
+#: templates/auth/login-form.php:27
+msgid "Please enter both your employee number and password."
+msgstr "社員番号とパスワードの両方を入力してください。"
+
+#: templates/auth/login-form.php:30
+msgid "Invalid employee number or password."
+msgstr "社員番号またはパスワードが正しくありません。"
+
+#: templates/auth/login-form.php:33
+msgid "Please login to access the dashboard."
+msgstr "ダッシュボードにアクセスするにはログインしてください。"
+
+#: templates/auth/login-form.php:47
+msgid "Employee Number"
+msgstr "社員番号"
+
+#: templates/auth/login-form.php:52
+msgid "Password"
+msgstr "パスワード"
+
+#: templates/auth/login-form.php:58
+msgid "Login"
+msgstr "ログイン"
+
+#: templates/auth/login-form.php:64
+msgid "If you have forgotten your password, please contact your administrator."
+msgstr "パスワードを忘れた場合は、管理者に連絡してください。"
+
+#: templates/auth/employee-dashboard.php:28
+msgid "Hello, %s"
+msgstr "こんにちは、%s さん"
+
+#: templates/auth/employee-dashboard.php:29
+msgid "Welcome to your Stress Check Dashboard."
+msgstr "ストレスチェック・ダッシュボードへようこそ。"
+
+#: templates/auth/employee-dashboard.php:33
+msgid "Logout"
+msgstr "ログアウト"
+
+#: templates/auth/employee-dashboard.php:39
+msgid "Your Stress Check Status"
+msgstr "ストレスチェック実施状況"
+
+#: templates/auth/employee-dashboard.php:45
+msgid "Completed"
+msgstr "実施済み"
+
+#: templates/auth/employee-dashboard.php:48
+msgid "In Progress"
+msgstr "実施中"
+
+#: templates/auth/employee-dashboard.php:51
+msgid "Not Started"
+msgstr "未実施"
+
+#: templates/auth/employee-dashboard.php:59
+msgid "Results Determination"
+msgstr "判定結果"
+
+#: templates/auth/employee-dashboard.php:65
+msgid "High Stress Detected"
+msgstr "高いストレスが設定されました"
+
+#: templates/auth/employee-dashboard.php:66
+msgid "Your results indicate a high level of stress. We recommend reviewing your results and considering a consultation with an industrial physician."
+msgstr "あなたの結果は高いストレスレベルを示しています。結果を確認し、産業医との面談を検討することをお勧めします。"
+
+#: templates/auth/employee-dashboard.php:71
+msgid "Normal Stress Levels"
+msgstr "通常のストレスレベル"
+
+#: templates/auth/employee-dashboard.php:72
+msgid "Your results do not indicate a high level of stress at this time. Please continue to monitor your health."
+msgstr "現在のところ、あなたの結果は高いストレスレベルを示していません。引き続き健康管理に努めてください。"
+
+#: templates/auth/employee-dashboard.php:77
+msgid "You can download your detailed results as a PDF below."
+msgstr "詳細な結果は、以下のボタンからPDFとしてダウンロードできます。"
+
+#: templates/auth/employee-dashboard.php:80
+msgid "Download Results PDF"
+msgstr "結果PDFをダウンロード"
+
+#: templates/auth/employee-dashboard.php:83
+msgid "Please complete all questions to receive your stress evaluation results."
+msgstr "ストレス評価結果を受け取るために、すべての質問に回答してください。"
+
+#: templates/auth/employee-dashboard.php:93
+msgid "Resume Stress Check"
+msgstr "ストレスチェックを再開する"
+
+#: templates/auth/employee-dashboard.php:93
+msgid "Start Stress Check"
+msgstr "ストレスチェックを開始する"
+
+#: templates/auth/employee-dashboard.php:103
+msgid "Results Report (Japanese: ストレスチェック結果報告書)"
+msgstr "ストレスチェック結果報告書"
+
+#: includes/auth/class-employee-ui-handler.php:76
+msgid "Please answer all questions."
+msgstr "すべての質問に回答してください。"
+
+#: includes/auth/class-employee-ui-handler.php:77
+msgid "Please complete all questions in this section."
+msgstr "このセクションのすべての質問に回答してください。"
+
+#: templates/questionnaire/questionnaire-form.php:34
+msgid "questions answered"
+msgstr "問回答済み"
+
+#: templates/questionnaire/questionnaire-form.php:82
+msgid "Question"
+msgstr "質問"
+
+#: templates/questionnaire/questionnaire-form.php:118
+msgid "Save Progress"
+msgstr "一時保存"
+
+#: templates/questionnaire/questionnaire-form.php:121
+msgid "Submit Answers"
+msgstr "回答を提出する"
+
+#: templates/questionnaire/questionnaire-page-wrapper.php:21
+msgid "Please complete all 57 items in order."
+msgstr "57個の項目すべてに順番に回答してください。"
+
+#: includes/auth/class-employee-ui-handler.php:96
+msgid "stress-check-results"
+msgstr "ストレスチェック結果"
+
+#: templates/auth/employee-dashboard.php:140
+msgid "Method"
+msgstr "判定方法"
+
+#: templates/auth/employee-dashboard.php:141
+msgid "Score"
+msgstr "得点"
+
+#: templates/auth/employee-dashboard.php:142
+msgid "Determination"
+msgstr "判定"
+
+#: templates/auth/employee-dashboard.php:145
+msgid "Method 1 (Total Points)"
+msgstr "判定方法1（合計点数）"
+
+#: templates/auth/employee-dashboard.php:152
+msgid "Method 2 (Scale Specific)"
+msgstr "判定方法2（尺度別）"
+
+#: templates/auth/employee-dashboard.php:148
+#: templates/auth/employee-dashboard.php:155
+msgid "High"
+msgstr "高い"
+
+#: templates/auth/employee-dashboard.php:148
+#: templates/auth/employee-dashboard.php:155
+msgid "Normal"
+msgstr "普通"
+
+#: templates/admin/admin-dashboard.php:37
+msgid "Overview"
+msgstr "概要"
+
+#: templates/admin/admin-dashboard.php:41
+msgid "Employees"
+msgstr "従業員"
+
+#: templates/admin/admin-dashboard.php:45
+msgid "CSV Import"
+msgstr "CSVインポート"
+
+#: templates/admin/admin-dashboard.php:49
+msgid "Group Analysis"
+msgstr "集計・分析"
+
+#: templates/admin/admin-dashboard.php:53
+msgid "Settings"
+msgstr "設定"
+
+#: templates/admin/admin-dashboard.php:31
+msgid "OSQ Admin"
+msgstr "OSQ管理"
+
+#: templates/admin/admin-dashboard.php:77
+msgid "Total Employees"
+msgstr "計 従業員数"
+
+#: templates/admin/admin-dashboard.php:81
+msgid "Completion Rate"
+msgstr "回答率"
+
+#: templates/admin/admin-dashboard.php:85
+msgid "Pending Responses"
+msgstr "未回答数"
+
+#: templates/admin/admin-dashboard.php:90
+msgid "System overview and quick actions will appear here."
+msgstr "システムの概要とクイックアクションがここに表示されます。"
+
+#: templates/admin/admin-dashboard.php:98
+msgid "Search employees..."
+msgstr "従業員を検索..."
+
+#: templates/admin/admin-dashboard.php:105
+msgid "ID"
+msgstr "ID"
+
+#: templates/admin/admin-dashboard.php:106
+msgid "Name"
+msgstr "氏名"
+
+#: templates/admin/admin-dashboard.php:107
+msgid "Department"
+msgstr "部署"
+
+#: templates/admin/admin-dashboard.php:108
+msgid "Status"
+msgstr "ステータス"
+
+#: templates/admin/admin-dashboard.php:109
+msgid "Last Active"
+msgstr "最終更新"
+
+#: templates/admin/admin-dashboard.php:114
+msgid "Loading employee data..."
+msgstr "従業員データを読み込み中..."
+
+#: templates/admin/admin-dashboard.php:466
+msgid "No employees found."
+msgstr "従業員が見つかりませんでした。"
+
+#: templates/admin/admin-dashboard.php:126
+msgid "Drag and drop your CSV file here or click to browse"
+msgstr "ここにCSVファイルをドラッグ＆ドロップするか、クリックして選択してください"
+
+#: templates/admin/admin-dashboard.php:130
+msgid "CSV Format Instructions"
+msgstr "CSVフォーマットの説明"
+
+#: templates/admin/admin-dashboard.php:132
+msgid "Required columns: employee_number, name, email"
+msgstr "必須カラム: 社員番号, 氏名, メールアドレス"
+
+#: templates/admin/admin-dashboard.php:133
+msgid "Encoding: UTF-8 or Shift-JIS (Japanese)"
+msgstr "エンコーディング: UTF-8 または Shift-JIS（日本語）"
+
+#: templates/admin/admin-dashboard.php:134
+msgid "Max file size: 5MB"
+msgstr "最大ファイルサイズ: 5MB"
+
+#: templates/admin/admin-dashboard.php:144
+msgid "Select Department"
+msgstr "部署を選択"
+
+#: templates/admin/admin-dashboard.php:146
+msgid "Apply Filter"
+msgstr "フィルタを適用"
+
+#: templates/admin/admin-dashboard.php:150
+msgid "High Stress Ratio"
+msgstr "高ストレス判定率"
+
+#: templates/admin/admin-dashboard.php:154
+msgid "Scale Average Scores"
+msgstr "尺度別平均点"
+
+#: templates/admin/admin-dashboard.php:160
+msgid "Results are only shown for groups with 10 or more respondents to ensure privacy."
+msgstr "プライバシー保護のため、回答者が10名以上のグループのみ結果が表示されます。"
+
+#: templates/admin/admin-dashboard.php:168
+msgid "System Language"
+msgstr "システム言語"
+
+#: templates/admin/admin-dashboard.php:170
+msgid "Japanese"
+msgstr "日本語"
+
+msgid "Imported Users (CSV)"
+msgstr "インポート済みユーザー（CSV）"
+
+msgid "Passwords are shown for users created via CSV import only."
+msgstr "CSVインポートで作成されたユーザーのみ、パスワードを表示します。"
+
+msgid "Created At"
+msgstr "作成日時"
+
+msgid "Delete"
+msgstr "削除"
+
+msgid "Delete failed."
+msgstr "削除に失敗しました。"
+
+msgid "Delete this imported user?"
+msgstr "このインポート済みユーザーを削除しますか？"
+
+msgid "No imported users."
+msgstr "インポート済みユーザーはいません。"
+
+msgid "Uploading CSV..."
+msgstr "CSVをアップロード中..."
+
+msgid "CSV import completed."
+msgstr "CSVインポートが完了しました。"
+
+msgid "Imported"
+msgstr "取込数"
+
+msgid "Skipped"
+msgstr "スキップ数"
+
+msgid "Errors"
+msgstr "エラー数"
+
+msgid "Errors:"
+msgstr "エラー:"
+
+msgid "and"
+msgstr "および"
+
+msgid "more"
+msgstr "件"
+
+msgid "Employee ID"
+msgstr "社員番号"
+
+msgid "Customer Service"
+msgstr "カスタマーサービス"
+
+msgid "Engineering"
+msgstr "エンジニアリング"
+
+msgid "Finance"
+msgstr "経理"
+
+msgid "Human Resources"
+msgstr "人事"
+
+msgid "Marketing"
+msgstr "マーケティング"
+
+msgid "Operations"
+msgstr "オペレーション"
+
+msgid "Sales Department"
+msgstr "営業部"
+
+msgid "Execute"
+msgstr "実行"
+
+msgid "Change Password"
+msgstr "パスワード変更"
+
+msgid "Search follow-ups..."
+msgstr "フォローアップを検索..."
+
+msgid "Employee"
+msgstr "従業員"
+
+msgid "Scheduled Date"
+msgstr "予定日"
+
+msgid "No follow-up data found"
+msgstr "フォローアップデータが見つかりません"
+
+msgid "Loading follow-up data..."
+msgstr "フォローアップデータを読み込み中..."
+
+msgid "Edit"
+msgstr "編集"
+
+msgid "Error applying filters"
+msgstr "フィルター適用エラー"
+
+msgid "Network error while applying filters"
+msgstr "フィルター適用中にネットワークエラーが発生しました"
+
+msgid "A server error occurred. Please try again."
+msgstr "サーバーエラーが発生しました。再度お試しください。"
+
+msgid "Updated follow-up statuses"
+msgstr "フォローアップ状況を更新しました"
+
+#: templates/admin/admin-dashboard.php:171
+msgid "English"
+msgstr "英語"
+
+#: templates/admin/admin-dashboard.php:175
+msgid "Session Timeout (Minutes)"
+msgstr "セッションタイムアウト（分）"
+
+#: templates/admin/admin-dashboard.php:179
+msgid "Save Settings"
+msgstr "設定を保存"
+
+#: includes/auth/class-admin-ui-handler.php:189
+msgid "Pending"
+msgstr "未実施"
+
+#: includes/auth/class-admin-ui-handler.php:192
+msgid "Selected file"
+msgstr "選択されたファイル"
+
+#: includes/auth/class-admin-ui-handler.php:238
+msgid "Admin Login"
+msgstr "管理者ログイン"
+
+#: includes/auth/class-admin-ui-handler.php:240
+msgid "Admin Dashboard"
+msgstr "管理者ダッシュボード"
+
+#: templates/admin/admin-login.php:30
+msgid "OSQ Stress Check"
+msgstr "OSQストレスチェック"
+
+#: templates/admin/admin-login.php:31
+msgid "Management Portal"
+msgstr "管理ポータル"
+
+#: templates/admin/admin-login.php:40
+msgid "Please enter both your username/email and password."
+msgstr "ユーザー名/メールアドレスとパスワードの両方を入力してください。"
+
+#: templates/admin/admin-login.php:43
+msgid "Invalid credentials. Please try again."
+msgstr "認証情報が無効です。もう一度お試しください。"
+
+#: templates/admin/admin-login.php:46
+msgid "You do not have permission to access the management portal."
+msgstr "管理ポータルにアクセスする権限がありません。"
+
+#: templates/admin/admin-login.php:49
+msgid "Please login to access the dashboard."
+msgstr "ダッシュボードにアクセスするにはログインしてください。"
+
+#: templates/admin/admin-login.php:52
+msgid "An error occurred. Please try again."
+msgstr "エラーが発生しました。もう一度お試しください。"
+
+#: templates/admin/admin-login.php:63
+msgid "Username or Email Address"
+msgstr "ユーザー名またはメールアドレス"
+
+#: templates/admin/admin-login.php:68
+msgid "Password"
+msgstr "パスワード"
+
+#: templates/admin/admin-login.php:74
+msgid "Sign In"
+msgstr "サインイン"
+
+#: templates/admin/admin-login.php:81
+msgid "Employee Portal"
+msgstr "従業員ポータル"
+
+#: includes/class-plugin.php:107
+msgid "Security check failed."
+msgstr "セキュリティチェックに失敗しました。"
+
+#: includes/auth/class-admin-ui-handler.php:303
+msgid "Template not found."
+msgstr "テンプレートが見つかりません。"
+
+#: templates/admin/admin-dashboard.php:65
+msgid "Hello, %s"
+msgstr "こんにちは、%s さん"
+
+#: templates/admin/admin-dashboard.php:67
+msgid "Logout"
+msgstr "ログアウト"
+
+#: includes/auth/class-admin-ui-handler.php:375
+msgid "Settings saved successfully."
+msgstr "設定が正常に保存されました。"
+
+#: includes/auth/class-admin-ui-handler.php:380
+msgid "Failed to save settings."
+msgstr "設定の保存に失敗しました。"
+
+
+
+
+msgid "Implementation Officer Portal"
+msgstr "実施事務従事者ポータル"
+
+msgid "Implementation Officer Login"
+msgstr "実施事務従事者ログイン"
+
+msgid "Implementation Officer Dashboard"
+msgstr "実施事務従事者ダッシュボード"
+
+msgid "Individual Responses"
+msgstr "個人の受検結果"
+
+msgid "OSQ Officer"
+msgstr "OSQ 実施事務"
+
+msgid "Stress Status"
+msgstr "ストレス判定"
+
+msgid "High Stress"
+msgstr "高ストレス"
+
+msgid "Normal"
+msgstr "正常"
+
+msgid "Download PDF"
+msgstr "PDFダウンロード"
+
+msgid "Generated by %s (Implementation Officer Portal)"
+msgstr "%s によって生成されました (実施事務従事者ポータル)"
+
+
+msgid "Search employees..."
+msgstr "従業員を検索..."
+
+msgid "ID"
+msgstr "ID"
+
+msgid "Name"
+msgstr "氏名"
+
+msgid "Department"
+msgstr "部署"
+
+msgid "Completion Date"
+msgstr "完了日"
+
+msgid "Actions"
+msgstr "アクション"
+
+msgid "System Language"
+msgstr "システム言語"
+
+msgid "Japanese"
+msgstr "日本語"
+
+msgid "English"
+msgstr "英語"
+
+msgid "Save Settings"
+msgstr "設定を保存"
+
+msgid "Completed"
+msgstr "完了"
+
+msgid "Pending"
+msgstr "未完了"
+
+msgid "No employees found."
+msgstr "従業員が見つかりません。"
+
+msgid "Loading employee data..."
+msgstr "従業員データを読み込み中..."
+
+msgid "Stress Check Results Report"
+msgstr "ストレスチェック結果報告書"
+
+msgid "Results Report (Japanese: ストレスチェック結果報告書)"
+msgstr "結果報告書"
+
+msgid "Name:"
+msgstr "氏名:"
+
+msgid "Employee ID:"
+msgstr "社員番号:"
+
+msgid "Date:"
+msgstr "日付:"
+
+msgid "Overall Determination"
+msgstr "総合判定"
+
+msgid "High Stress Detected"
+msgstr "高ストレス判定"
+
+msgid "Normal Stress Levels"
+msgstr "正常"
+
+msgid "Your results indicate high stress. We recommend a consultation with a physician."
+msgstr "結果は高ストレスを示しています。医師への面接指導を推奨します。"
+
+msgid "Your results do not indicate high stress at this time."
+msgstr "現在のところ高ストレスは認められませんでした。"
+
+msgid "Scoring Details"
+msgstr "詳細スコア"
+
+msgid "Method"
+msgstr "判定方法"
+
+msgid "Score"
+msgstr "スコア"
+
+msgid "Determination"
+msgstr "判定"
+
+msgid "Method 1 (Total Points)"
+msgstr "方法1（合計点）"
+
+msgid "Method 2 (Scale Specific)"
+msgstr "方法2（尺度別）"
+
+msgid "High"
+msgstr "高"
+
+msgid "Password Change Required"
+msgstr "パスワードの変更が必要です"
+
+msgid "For security reasons, you must change your initial password before you can access the dashboard."
+msgstr "セキュリティのため、ダッシュボードにアクセスする前に初期パスワードを変更する必要があります。"
+
+msgid "Your results do not indicate a high level of stress at this time. Please continue to monitor your health and maintain a healthy work-life balance."
+msgstr "現在のところ、あなたの結果は高いストレスレベルを示していません。引き続き健康管理に努め、良好なワークライフバランスを維持してください。"
+
+msgid "Profile Settings"
+msgstr "プロフィール設定"
+
+msgid "Change your password here."
+msgstr "ここでパスワードを変更できます。"
+
+msgid "Current Password"
+msgstr "現在のパスワード"
+
+msgid "New Password"
+msgstr "新しいパスワード"
+
+msgid "Confirm New Password"
+msgstr "新しいパスワード（確認）"
+
+msgid "Update Password"
+msgstr "パスワードを更新する"
+
+msgid "Follow-up Tracking"
+msgstr "フォローアップ管理"
+
+msgid "Follow-up Status"
+msgstr "フォローアップ状況"
+
+msgid "Scheduled"
+msgstr "予定済み"
+
+msgid "Completed"
+msgstr "完了"
+
+msgid "Cancelled"
+msgstr "キャンセル"
+
+msgid "Notes"
+msgstr "メモ"
+
+msgid "Schedule Date"
+msgstr "予定日"
+
+msgid "Update Follow-up"
+msgstr "フォローアップを更新"
+
+msgid "View Detailed Responses"
+msgstr "詳細回答を表示"
+
+msgid "Question"
+msgstr "質問"
+
+msgid "Answer"
+msgstr "回答"
+
+msgid "Category"
+msgstr "カテゴリ"
+
+msgid "Scale"
+msgstr "尺度"
+
+msgid "Very Much"
+msgstr "非常にそうだ"
+
+msgid "Much"
+msgstr "そうだ"
+
+msgid "Somewhat"
+msgstr "まあそうだ"
+
+msgid "Not At All"
+msgstr "ちがう"
+
+msgid "No Answer"
+msgstr "回答なし"
+
+msgid "Follow-up status updated successfully."
+msgstr "フォローアップ状況が正常に更新されました。"
+
+msgid "Failed to update follow-up status."
+msgstr "フォローアップ状況の更新に失敗しました。"
+
+msgid "Filter by Organization"
+msgstr "組織で絞り込む"
+
+msgid "Filter by Status"
+msgstr "状況で絞り込む"
+
+msgid "All Statuses"
+msgstr "すべての状況"
+
+msgid "Completed Only"
+msgstr "完了のみ"
+
+msgid "Pending Only"
+msgstr "未完了のみ"
+
+msgid "High Stress Only"
+msgstr "高ストレスのみ"
+
+msgid "Apply Filters"
+msgstr "フィルターを適用"
+
+msgid "Clear Filters"
+msgstr "フィルターをクリア"
+
+msgid "Bulk Actions"
+msgstr "一括操作"
+
+msgid "Select All"
+msgstr "すべて選択"
+
+msgid "Employee Details"
+msgstr "従業員詳細"
+
+msgid "Response Details"
+msgstr "回答詳細"
+
+msgid "Scoring Results"
+msgstr "採点結果"
+
+msgid "Method 1 Results"
+msgstr "方法1の結果"
+
+msgid "Method 2 Results"
+msgstr "方法2の結果"
+
+msgid "Total Score"
+msgstr "合計点"
+
+msgid "Scale Scores"
+msgstr "尺度別点数"
+
+msgid "Close"
+msgstr "閉じる"
+
+msgid "Loading..."
+msgstr "読み込み中..."
+
+msgid "No data available"
+msgstr "データがありません"
+
+msgid "Error loading data"
+msgstr "データの読み込みエラー"
+
+msgid "Organization Level 1"
+msgstr "組織レベル1"
+
+msgid "Organization Level 2"
+msgstr "組織レベル2"
+
+msgid "Organization Level 3"
+msgstr "組織レベル3"
+
+msgid "Download CSV"
+msgstr "CSVをダウンロード"
+
+msgid "Participation Rate by Group"
+msgstr "グループ別回答率"
+
+msgid "Group Analysis Summary (10+ Respondents)"
+msgstr "集団分析サマリー（10名以上）"
+
+msgid "Group"
+msgstr "グループ"
+
+msgid "Respondents"
+msgstr "回答者数"
+
+msgid "High Stress Count"
+msgstr "高ストレス人数"
+
+msgid "High Stress Ratio"
+msgstr "高ストレス判定率"
+
+msgid "Completed"
+msgstr "完了"
+
+msgid "All Statuses"
+msgstr "すべての状況"
+
+msgid "Refresh"
+msgstr "更新"
+
+msgid "Loading group analysis..."
+msgstr "集団分析を読み込み中..."
+
+msgid "No groups meet the minimum size requirement."
+msgstr "最小人数要件を満たすグループがありません。"
+
+msgid "No participation data found."
+msgstr "参加データが見つかりません。"
+
+msgid "Employee Detailed Responses"
+msgstr "従業員の詳細回答"
+
+msgid "Section"
+msgstr "セクション"
+
+msgid "Section A"
+msgstr "セクションA"
+
+msgid "Section B"
+msgstr "セクションB"
+
+msgid "Section C"
+msgstr "セクションC"
+
+msgid "Section D"
+msgstr "セクションD"
+
+msgid "Section A Total"
+msgstr "セクションA合計"
+
+msgid "Section B Total"
+msgstr "セクションB合計"
+
+msgid "Section C Total"
+msgstr "セクションC合計"
+
+msgid "Section A Eval"
+msgstr "セクションA評価"
+
+msgid "Section B Eval"
+msgstr "セクションB評価"
+
+msgid "Section C Eval"
+msgstr "セクションC評価"
+
+msgid "High Stress"
+msgstr "高ストレス"
+
+msgid "Yes"
+msgstr "はい"
+
+msgid "No"
+msgstr "いいえ"
+
+msgid "Criterion A"
+msgstr "基準A"
+
+msgid "Criterion B"
+msgstr "基準B"
+
+msgid "Met"
+msgstr "該当"
+
+msgid "Not Met"
+msgstr "非該当"
+
+msgid "No responses found."
+msgstr "回答が見つかりません。"
+
+msgid "View Details"
+msgstr "詳細を見る"
+
+msgid "Follow-up"
+msgstr "フォローアップ"
+
+
+msgid "Dashboard"
+msgstr "ダッシュボード"
+
+msgid "Profile"
+msgstr "プロフィール"
+
+msgid "System Language"
+msgstr "システム言語"
+
+msgid "English"
+msgstr "英語"
+
+msgid "Japanese"
+msgstr "日本語"

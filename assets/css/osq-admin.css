@@ -1,0 +1,117 @@
+/**
+ * OSQ Stress Check Admin Styling.
+ */
+
+.osq-admin-wrap {
+    margin-top: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+.osq-card {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.osq-card-title {
+    margin-top: 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    font-size: 1.3em;
+}
+
+/* CSV Upload Area */
+.osq-upload-dropzone {
+    border: 2px dashed #ccd0d4;
+    padding: 40px;
+    text-align: center;
+    background: #f9f9f9;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.osq-upload-dropzone.hover {
+    border-color: #0073aa;
+    background: #f0f7fa;
+}
+
+/* Statistics Grid */
+.osq-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.osq-stat-item {
+    background: #fff;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    border-top: 4px solid #0073aa;
+}
+
+.osq-stat-value {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: #333;
+}
+
+.osq-stat-label {
+    color: #666;
+    margin-top: 5px;
+    font-size: 0.9em;
+}
+
+/* Chart Container */
+.osq-chart-container {
+    position: relative;
+    height: 400px;
+    width: 100%;
+}
+
+/* Result Tables */
+.osq-data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.osq-data-table th,
+.osq-data-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.osq-data-table th {
+    background: #f8f8f8;
+    font-weight: 600;
+}
+
+/* Status Badges */
+.osq-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-weight: 500;
+}
+
+.osq-badge-danger {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.osq-badge-success {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.osq-badge-warning {
+    background: #fef3c7;
+    color: #92400e;
+}
