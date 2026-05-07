@@ -97,13 +97,24 @@ class OfficerUiHandler {
 			wp_send_json_error( 'incomplete_response' );
 		}
 
-		$is_high_stress = $response->is_high_stress_method1 || $response->is_high_stress_method2;
+		$scoring_done   = ! is_null( $response->is_high_stress_method1 );
+		$is_high_stress = $scoring_done && ( $response->is_high_stress_method1 || $response->is_high_stress_method2 );
 		$date_str       = date_i18n( get_option( 'date_format' ), strtotime( $response->completed_at ?? 'now' ) );
 		$site_name      = get_bloginfo( 'name' );
-		
-		$high_stress_text = $is_high_stress ? esc_html__( 'High Stress Detected', 'osq-stress-check' ) : esc_html__( 'Normal Stress Levels', 'osq-stress-check' );
-		$high_stress_desc = $is_high_stress ? esc_html__( 'Your results indicate high stress. We recommend a consultation with a physician.', 'osq-stress-check' ) : esc_html__( 'Your results do not indicate high stress at this time.', 'osq-stress-check' );
-		$color            = $is_high_stress ? '#d63638' : '#1e7e34';
+
+		if ( ! $scoring_done ) {
+			$high_stress_text = esc_html__( 'Score Not Calculated', 'osq-stress-check' );
+			$high_stress_desc = esc_html__( 'Scoring data is not available for this response. The employee may need to retake the questionnaire, or the scoring engine was not active when the response was submitted.', 'osq-stress-check' );
+			$color            = '#888888';
+		} elseif ( $is_high_stress ) {
+			$high_stress_text = esc_html__( 'High Stress Detected', 'osq-stress-check' );
+			$high_stress_desc = esc_html__( 'Your results indicate high stress. We recommend a consultation with a physician.', 'osq-stress-check' );
+			$color            = '#d63638';
+		} else {
+			$high_stress_text = esc_html__( 'Normal Stress Levels', 'osq-stress-check' );
+			$high_stress_desc = esc_html__( 'Your results do not indicate high stress at this time.', 'osq-stress-check' );
+			$color            = '#1e7e34';
+		}
 
 		ob_start();
 		?>

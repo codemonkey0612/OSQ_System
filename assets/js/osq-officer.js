@@ -136,82 +136,68 @@
             }
         });
 
-        // Handle PDF Download
+        // Handle PDF Download — uses browser native print (no html2canvas dependency)
         $(document).on('click', '.osq-js-officer-pdf', function (e) {
             e.preventDefault();
-            const $btn = $(this);
-            const employeeId = $btn.data('emp-id');
-            const originalHtml = $btn.html();
+            const $btn   = $(this);
+            const empId  = $btn.data('emp-id');
+            const origHtml = $btn.html();
 
-            $btn.html('<span class="dashicons dashicons-update osq-spin"></span>...');
-            $btn.prop('disabled', true);
+            $btn.html('<span class="dashicons dashicons-update osq-spin"></span>...').prop('disabled', true);
 
             $.ajax({
-                url: ajaxVars.ajax_url,
+                url:  ajaxVars.ajax_url,
                 type: 'POST',
-                data: {
-                    action: 'osq_officer_get_pdf_html',
-                    nonce: ajaxVars.nonce,
-                    employee_id: employeeId
-                },
+                data: { action: 'osq_officer_get_pdf_html', nonce: ajaxVars.nonce, employee_id: empId },
                 success: function (response) {
-                    if (response.success) {
-                        // Wrap in a fixed-width container so html2pdf can measure it
-                        const htmlContent = '<div style="width:170mm;margin:0 auto;">' + response.data.html + '</div>';
-                        const filename   = (response.data.filename || 'stress-check-results') + '.pdf';
+                    $btn.html(origHtml).prop('disabled', false);
 
-                        function doGenerate() {
-                            const opt = {
-                                margin:     [10, 10],
-                                filename:   filename,
-                                image:      { type: 'jpeg', quality: 0.98 },
-                                html2canvas:{ scale: 2, useCORS: true, logging: false, allowTaint: true },
-                                jsPDF:      { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                            };
-                            // Pass the HTML string — html2pdf creates an isolated element
-                            // internally, avoiding clipping/overflow issues from the dashboard layout.
-                            html2pdf().set(opt).from(htmlContent).save()
-                                .then(function () {
-                                    $btn.html(originalHtml);
-                                    $btn.prop('disabled', false);
-                                })
-                                .catch(function (err) {
-                                    console.error('PDF Generation Error:', err);
-                                    $btn.html(originalHtml);
-                                    $btn.prop('disabled', false);
-                                    alert('PDF generation failed: ' + err.message);
-                                });
-                        }
-
-                        if (typeof html2pdf === 'undefined') {
-                            $.getScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js')
-                                .done(doGenerate)
-                                .fail(function () {
-                                    $btn.html(originalHtml);
-                                    $btn.prop('disabled', false);
-                                    alert('Could not load PDF library. Please check your internet connection and try again.');
-                                });
-                        } else {
-                            doGenerate();
-                        }
-                    } else {
-                        alert('Failed to fetch PDF data: ' + JSON.stringify(response.data));
-                        $btn.html(originalHtml);
-                        $btn.prop('disabled', false);
+                    if (!response.success) {
+                        alert('PDF error: ' + JSON.stringify(response.data));
+                        return;
                     }
+
+                    const filename = response.data.filename || 'stress-check-results';
+                    const win = window.open('', '_blank', 'width=860,height=740,scrollbars=yes,resizable=yes');
+                    if (!win) {
+                        alert(
+                            'ポップアップがブロックされました。ブラウザのポップアップ許可設定を確認してください。\n' +
+                            'Popup blocked — please allow popups for this site and click the button again.'
+                        );
+                        return;
+                    }
+
+                    win.document.open();
+                    win.document.write(
+                        '<!DOCTYPE html><html lang="ja"><head>' +
+                        '<meta charset="UTF-8">' +
+                        '<title>' + filename + '</title>' +
+                        '<style>' +
+                        'body{margin:0;padding:0;font-family:"Hiragino Kaku Gothic Pro",Meiryo,sans-serif;}' +
+                        '.osq-bar{background:#007cba;padding:10px 20px;display:flex;gap:8px;' +
+                        'justify-content:flex-end;position:sticky;top:0;z-index:999;}' +
+                        '.osq-bar button{background:#fff;border:1px solid #bbb;padding:7px 16px;' +
+                        'cursor:pointer;font-size:13px;border-radius:4px;font-family:inherit;}' +
+                        '.osq-bar button:hover{background:#f0f0f0;}' +
+                        '@media print{.osq-bar{display:none!important;}' +
+                        'body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}' +
+                        '</style></head><body>' +
+                        '<div class="osq-bar">' +
+                        '<button onclick="window.print()">&#128438; Print / Save as PDF</button>' +
+                        '<button onclick="window.close()">&#10005; Close</button>' +
+                        '</div>' +
+                        response.data.html +
+                        '</body></html>'
+                    );
+                    win.document.close();
                 },
-                error: function (xhr, status, error) {
-                    console.error('PDF AJAX error:', status, error, xhr.responseText);
-                    alert('Network error loading PDF data.');
-                    $btn.html(originalHtml);
-                    $btn.prop('disabled', false);
+                error: function (xhr, status, err) {
+                    console.error('PDF AJAX error:', status, err, xhr.responseText);
+                    $btn.html(origHtml).prop('disabled', false);
+                    alert('Network error loading PDF data (' + status + '). Please try again.');
                 }
             });
         });
-
-        function generatePdf() {
-            // kept for compatibility — logic is now inline in the click handler above
-        }
 
         // Search functionality
         $('.osq-input-search').on('input', function () {
