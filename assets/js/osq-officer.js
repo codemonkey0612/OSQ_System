@@ -136,7 +136,7 @@
             }
         });
 
-        // Handle PDF Download (STUB)
+        // Handle PDF Download
         $(document).on('click', '.osq-js-officer-pdf', function (e) {
             e.preventDefault();
             const $btn = $(this);
@@ -146,7 +146,6 @@
             $btn.html('<span class="dashicons dashicons-update osq-spin"></span>...');
             $btn.prop('disabled', true);
 
-            // In the next step we will add AJAX call to fetch HTML and use html2pdf()
             $.ajax({
                 url: ajaxVars.ajax_url,
                 type: 'POST',
@@ -157,60 +156,61 @@
                 },
                 success: function (response) {
                     if (response.success) {
-                        // Create a temporary hidden div for rendering
-                        let $printArea = $('#osq-officer-pdf-print-area');
-                        if ($printArea.length === 0) {
-                            $('body').append('<div id="osq-officer-pdf-print-area" style="display:none;"></div>');
-                            $printArea = $('#osq-officer-pdf-print-area');
+                        // Wrap in a fixed-width container so html2pdf can measure it
+                        const htmlContent = '<div style="width:170mm;margin:0 auto;">' + response.data.html + '</div>';
+                        const filename   = (response.data.filename || 'stress-check-results') + '.pdf';
+
+                        function doGenerate() {
+                            const opt = {
+                                margin:     [10, 10],
+                                filename:   filename,
+                                image:      { type: 'jpeg', quality: 0.98 },
+                                html2canvas:{ scale: 2, useCORS: true, logging: false, allowTaint: true },
+                                jsPDF:      { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                            };
+                            // Pass the HTML string — html2pdf creates an isolated element
+                            // internally, avoiding clipping/overflow issues from the dashboard layout.
+                            html2pdf().set(opt).from(htmlContent).save()
+                                .then(function () {
+                                    $btn.html(originalHtml);
+                                    $btn.prop('disabled', false);
+                                })
+                                .catch(function (err) {
+                                    console.error('PDF Generation Error:', err);
+                                    $btn.html(originalHtml);
+                                    $btn.prop('disabled', false);
+                                    alert('PDF generation failed: ' + err.message);
+                                });
                         }
 
-                        $printArea.html(response.data.html);
-                        $printArea.css('display', 'block');
-
-                        // Load html2pdf dynamically if not present
                         if (typeof html2pdf === 'undefined') {
-                            $.getScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js', function () {
-                                generatePdf($printArea[0], response.data.filename, $btn, originalHtml, $printArea);
-                            });
+                            $.getScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js')
+                                .done(doGenerate)
+                                .fail(function () {
+                                    $btn.html(originalHtml);
+                                    $btn.prop('disabled', false);
+                                    alert('Could not load PDF library. Please check your internet connection and try again.');
+                                });
                         } else {
-                            generatePdf($printArea[0], response.data.filename, $btn, originalHtml, $printArea);
+                            doGenerate();
                         }
                     } else {
-                        alert('Failed to fetch PDF data.');
+                        alert('Failed to fetch PDF data: ' + JSON.stringify(response.data));
                         $btn.html(originalHtml);
                         $btn.prop('disabled', false);
                     }
                 },
-                error: function () {
-                    alert('Network error.');
+                error: function (xhr, status, error) {
+                    console.error('PDF AJAX error:', status, error, xhr.responseText);
+                    alert('Network error loading PDF data.');
                     $btn.html(originalHtml);
                     $btn.prop('disabled', false);
                 }
             });
         });
 
-        function generatePdf(element, filename, $btn, originalHtml, $printArea) {
-            const opt = {
-                margin: [15, 15],
-                filename: filename + '.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, letterRendering: true },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-            };
-
-            html2pdf().set(opt).from(element).save().then(function () {
-                $btn.html(originalHtml);
-                $btn.prop('disabled', false);
-                $printArea.css('display', 'none');
-                $printArea.empty();
-            }).catch(function (err) {
-                console.error('PDF Generation Error:', err);
-                $btn.html(originalHtml);
-                $btn.prop('disabled', false);
-                $printArea.css('display', 'none');
-                alert('Failed to generate PDF.');
-            });
+        function generatePdf() {
+            // kept for compatibility — logic is now inline in the click handler above
         }
 
         // Search functionality

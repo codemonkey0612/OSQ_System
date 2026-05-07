@@ -113,15 +113,17 @@ class OfficerUiHandler {
 				<p style="margin: 5px 0 0; color: #666;"><?php esc_html_e( 'Results Report (Japanese: ストレスチェック結果報告書)', 'osq-stress-check' ); ?></p>
 			</div>
 
-			<div style="margin-bottom: 30px; display: flex; justify-content: space-between;">
-				<div>
-					<p><strong><?php esc_html_e( 'Name:', 'osq-stress-check' ); ?></strong> <?php echo esc_html( $employee->name ?? '' ); ?></p>
-					<p><strong><?php esc_html_e( 'Employee ID:', 'osq-stress-check' ); ?></strong> <?php echo esc_html( $employee->employee_number ?? '' ); ?></p>
-				</div>
-				<div style="text-align: right;">
-					<p><strong><?php esc_html_e( 'Date:', 'osq-stress-check' ); ?></strong> <?php echo esc_html( $date_str ); ?></p>
-				</div>
-			</div>
+			<table style="width: 100%; margin-bottom: 30px; border-collapse: collapse;">
+				<tr>
+					<td style="vertical-align: top; padding: 0;">
+						<p style="margin: 0 0 6px;"><strong><?php esc_html_e( 'Name:', 'osq-stress-check' ); ?></strong> <?php echo esc_html( $employee->name ?? '' ); ?></p>
+						<p style="margin: 0;"><strong><?php esc_html_e( 'Employee ID:', 'osq-stress-check' ); ?></strong> <?php echo esc_html( $employee->employee_number ?? '' ); ?></p>
+					</td>
+					<td style="text-align: right; vertical-align: top; padding: 0;">
+						<p style="margin: 0;"><strong><?php esc_html_e( 'Date:', 'osq-stress-check' ); ?></strong> <?php echo esc_html( $date_str ); ?></p>
+					</td>
+				</tr>
+			</table>
 
 			<div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-left: 5px solid <?php echo $color; ?>;">
 				<h2 style="margin-top: 0; font-size: 18px; color: <?php echo $color; ?>;">
