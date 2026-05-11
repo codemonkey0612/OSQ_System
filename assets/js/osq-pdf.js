@@ -1,55 +1,70 @@
 /**
- * OSQ PDF Generation Handler
+ * OSQ Employee PDF Generation Handler — print-window approach.
+ * Replaces html2pdf/html2canvas (broken inside flex containers) with a
+ * native browser print window so the user can Save as PDF.
  */
 (function ($) {
     'use strict';
 
     $(document).ready(function () {
-        // Handle PDF download button click
+
         $('.osq-js-download-pdf').on('click', function (e) {
             e.preventDefault();
 
-            const $btn = $(this);
-            const originalHtml = $btn.html();
+            var templateEl = document.getElementById('osq-pdf-template');
+            if ( ! templateEl ) {
+                return;
+            }
 
-            // Show loading state
-            $btn.html('<span class="dashicons dashicons-update osq-spin"></span> Generating...');
-            $btn.prop('disabled', true);
+            var content  = templateEl.innerHTML;
+            var filename = (typeof osq_pdf_vars !== 'undefined' && osq_pdf_vars.filename)
+                ? osq_pdf_vars.filename
+                : 'stress-check-results';
 
-            const element = document.getElementById('osq-pdf-template');
-            
-            // Show element for capture
-            $(element).css('display', 'block');
-            
-            const opt = {
-                margin: [10, 10], // Slightly reduced margin
-                filename: (osq_pdf_vars.filename || 'stress-check-results') + '.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { 
-                    scale: 2, 
-                    useCORS: true, 
-                    letterRendering: true,
-                    logging: false,
-                    scrollX: 0,
-                    scrollY: 0
-                },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-            };
+            var printWin = window.open('', '_blank', 'width=860,height=900,scrollbars=yes,resizable=yes');
 
-            // Generate PDF
-            html2pdf().set(opt).from(element).save().then(function () {
-                // Restore button and hide template
-                $btn.html(originalHtml);
-                $btn.prop('disabled', false);
-                $(element).css('display', 'none');
-            }).catch(function (err) {
-                console.error('PDF Generation Error:', err);
-                $btn.html('<span class="dashicons dashicons-warning"></span> Error');
-                $(element).css('display', 'none');
-                alert('Failed to generate PDF. Please try again or contact support.');
-            });
+            if ( ! printWin ) {
+                alert(
+                    'ポップアップがブロックされています。ブラウザの設定でこのサイトのポップアップを許可してください。\n\n' +
+                    'Pop-up blocked. Please allow pop-ups for this site and try again.'
+                );
+                return;
+            }
+
+            printWin.document.open();
+            printWin.document.write(
+                '<!DOCTYPE html>' +
+                '<html>' +
+                '<head>' +
+                '<meta charset="UTF-8">' +
+                '<title>' + filename + '</title>' +
+                '<style>' +
+                '  body { font-family: "Hiragino Kaku Gothic Pro", "Meiryo", sans-serif; color: #333; line-height: 1.6; background: #fff; margin: 0; padding: 0; }' +
+                '  #osq-print-toolbar { background: #1e293b; color: #fff; padding: 12px 20px; display: flex; gap: 12px; align-items: center; position: sticky; top: 0; z-index: 999; }' +
+                '  #osq-print-toolbar button { padding: 8px 18px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }' +
+                '  #osq-btn-print { background: #166534; color: #fff; }' +
+                '  #osq-btn-close { background: #475569; color: #fff; }' +
+                '  #osq-print-content { padding: 30px; max-width: 760px; margin: 0 auto; }' +
+                '  @media print { #osq-print-toolbar { display: none !important; } #osq-print-content { padding: 0; max-width: 100%; } }' +
+                '</style>' +
+                '</head>' +
+                '<body>' +
+                '<div id="osq-print-toolbar">' +
+                '  <button id="osq-btn-print">PDF保存 / Save as PDF</button>' +
+                '  <button id="osq-btn-close">閉じる / Close</button>' +
+                '  <span style="font-size:13px;opacity:0.7;">印刷ダイアログで「PDFとして保存」を選んでください。</span>' +
+                '</div>' +
+                '<div id="osq-print-content">' + content + '</div>' +
+                '<script>' +
+                '  document.getElementById("osq-btn-print").addEventListener("click", function(){ window.print(); });' +
+                '  document.getElementById("osq-btn-close").addEventListener("click", function(){ window.close(); });' +
+                '<\/script>' +
+                '</body>' +
+                '</html>'
+            );
+            printWin.document.close();
         });
+
     });
 
 })(jQuery);

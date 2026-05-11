@@ -172,6 +172,10 @@ class DbManager {
 		}
 
 		if ( $response ) {
+			// Archive the old completed response before overwriting with a new completion.
+			if ( $response->is_complete && $is_complete ) {
+				$this->archive_response( $response, $employee_id );
+			}
 			$wpdb->update( $table, $values, array( 'response_id' => $response->response_id ) );
 			return $response->response_id;
 		} else {
@@ -192,6 +196,57 @@ class DbManager {
 		$table = $wpdb->prefix . Schema::RESPONSES;
 		return $wpdb->get_row(
 			$wpdb->prepare( "SELECT * FROM {$table} WHERE employee_id = %d", $employee_id )
+		);
+	}
+
+	/*
+	|----------------------------------------------------------------------
+	| Response History
+	|----------------------------------------------------------------------
+	*/
+
+	/**
+	 * Archive a completed response into osq_response_history before it is overwritten.
+	 *
+	 * @param object $response  Row from osq_stress_responses.
+	 * @param int    $employee_id
+	 * @return void
+	 */
+	private function archive_response( $response, $employee_id ) {
+		global $wpdb;
+		$table_history   = $wpdb->prefix . Schema::RESPONSE_HISTORY;
+		$table_employees = $wpdb->prefix . Schema::EMPLOYEES;
+
+		$employee    = $wpdb->get_row( $wpdb->prepare( "SELECT organization_1, position FROM {$table_employees} WHERE employee_id = %d", $employee_id ) );
+		$fiscal_year = $response->completed_at ? (int) date( 'Y', strtotime( $response->completed_at ) ) : (int) date( 'Y' );
+
+		$wpdb->insert( $table_history, array(
+			'employee_id'           => $employee_id,
+			'fiscal_year'           => $fiscal_year,
+			'method1_result'        => $response->method1_result,
+			'method2_result'        => $response->method2_result,
+			'is_high_stress_method1'=> $response->is_high_stress_method1,
+			'is_high_stress_method2'=> $response->is_high_stress_method2,
+			'completed_at'          => $response->completed_at,
+			'org_snapshot'          => $employee ? $employee->organization_1 : null,
+			'position_snapshot'     => $employee ? $employee->position : null,
+		) );
+	}
+
+	/**
+	 * Get the most recent archived result for an employee (for YoY radar chart).
+	 *
+	 * @param int $employee_id
+	 * @return object|null
+	 */
+	public function get_previous_year_result( $employee_id ) {
+		global $wpdb;
+		$table = $wpdb->prefix . Schema::RESPONSE_HISTORY;
+		return $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT * FROM {$table} WHERE employee_id = %d ORDER BY fiscal_year DESC, archived_at DESC LIMIT 1",
+				$employee_id
+			)
 		);
 	}
 

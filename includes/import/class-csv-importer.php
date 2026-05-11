@@ -38,6 +38,8 @@ class CsvImporter {
 		'job_type',
 		'position',
 		'employment_type',
+		'industry_type',
+		'hire_date',
 	);
 
 	/**
@@ -128,6 +130,22 @@ class CsvImporter {
 			'employment type',
 			'雇用形態',
 		),
+		'industry_type' => array(
+			'industry_type',
+			'industry type',
+			'industry code',
+			'業種',
+			'業種コード',
+			'業種タイプ',
+		),
+		'hire_date' => array(
+			'hire_date',
+			'hire date',
+			'joining date',
+			'入社日',
+			'入社年月日',
+			'採用日',
+		),
 	);
 
 	/**
@@ -211,16 +229,11 @@ class CsvImporter {
 				continue;
 			}
 
-			// Check for duplicate employee number.
+			// Check for duplicate employee number — update instead of skip.
 			$existing = $db->get_employee_by_number( $row['employee_number'] );
 			if ( $existing ) {
-				$result['errors'][] = sprintf(
-					/* translators: 1: row number, 2: employee number. */
-					__( 'Row %1$d: Employee number "%2$s" already exists. Skipped.', 'osq-stress-check' ),
-					$row_number,
-					$row['employee_number']
-				);
-				$result['skipped']++;
+				$this->update_employee( $db, $existing, $row );
+				$result['success']++;
 				continue;
 			}
 
@@ -240,7 +253,7 @@ class CsvImporter {
 
 			// Insert employee record.
 			$this->insert_employee( $db, $row, $wp_user_id );
-			
+
 			$result['success']++;
 			$result['added'][] = array(
 				'number'   => $row['employee_number'],
@@ -506,6 +519,47 @@ class CsvImporter {
 			'job_type'        => ! empty( $row['job_type'] ) ? absint( $row['job_type'] ) : null,
 			'position'        => ! empty( $row['position'] ) ? absint( $row['position'] ) : null,
 			'employment_type' => ! empty( $row['employment_type'] ) ? absint( $row['employment_type'] ) : null,
+			'industry_type'   => ! empty( $row['industry_type'] ) ? absint( $row['industry_type'] ) : null,
+			'hire_date'       => ! empty( $row['hire_date'] ) ? str_replace( '/', '-', $row['hire_date'] ) : null,
 		) );
+	}
+
+	/**
+	 * Update an existing employee with non-empty fields from the CSV row.
+	 *
+	 * @param \OSQ\Database\DbManager $db
+	 * @param object                   $existing  Row from osq_employees.
+	 * @param array                    $row       Mapped CSV row.
+	 * @return void
+	 */
+	private function update_employee( $db, $existing, $row ) {
+		global $wpdb;
+		$table  = $wpdb->prefix . \OSQ\Database\Schema::EMPLOYEES;
+		$update = array( 'updated_at' => current_time( 'mysql' ) );
+
+		$text_fields = array( 'name', 'email', 'organization_1', 'organization_2', 'organization_3' );
+		foreach ( $text_fields as $field ) {
+			if ( ! empty( $row[ $field ] ) ) {
+				$update[ $field ] = 'email' === $field
+					? sanitize_email( $row[ $field ] )
+					: sanitize_text_field( $row[ $field ] );
+			}
+		}
+
+		$int_fields = array( 'gender', 'job_type', 'position', 'employment_type', 'industry_type' );
+		foreach ( $int_fields as $field ) {
+			if ( isset( $row[ $field ] ) && '' !== $row[ $field ] ) {
+				$update[ $field ] = absint( $row[ $field ] );
+			}
+		}
+
+		if ( ! empty( $row['date_of_birth'] ) ) {
+			$update['date_of_birth'] = str_replace( '/', '-', $row['date_of_birth'] );
+		}
+		if ( ! empty( $row['hire_date'] ) ) {
+			$update['hire_date'] = str_replace( '/', '-', $row['hire_date'] );
+		}
+
+		$wpdb->update( $table, $update, array( 'employee_id' => $existing->employee_id ) );
 	}
 }

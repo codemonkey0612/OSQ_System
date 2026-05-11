@@ -101,6 +101,27 @@ class ImportValidator {
 			);
 		}
 
+		// Industry type — integer 1–15.
+		if ( ! empty( $row['industry_type'] ) ) {
+			$it = (int) $row['industry_type'];
+			if ( $it < 1 || $it > 15 ) {
+				$errors[] = sprintf(
+					/* translators: %d: row number. */
+					__( 'Row %d: Industry type must be between 1 and 15.', 'osq-stress-check' ),
+					$row_number
+				);
+			}
+		}
+
+		// Hire date — same multi-format date validation as date_of_birth.
+		if ( ! empty( $row['hire_date'] ) && ! $this->validate_date( $row['hire_date'] ) ) {
+			$errors[] = sprintf(
+				/* translators: %d: row number. */
+				__( 'Row %d: Invalid hire date format. Use yyyy/mm/dd, yyyy-mm-dd, dd/mm/yyyy, dd-mm-yyyy, mm/dd/yyyy, or mm-dd-yyyy.', 'osq-stress-check' ),
+				$row_number
+			);
+		}
+
 		return $errors;
 	}
 

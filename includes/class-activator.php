@@ -38,7 +38,7 @@ class Activator {
 	 *
 	 * @var string
 	 */
-	const DB_VERSION = '1.3.0';
+	const DB_VERSION = '1.4.0';
 
 	/**
 	 * Fired on plugin activation.

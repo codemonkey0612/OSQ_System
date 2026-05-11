@@ -24,7 +24,7 @@ class Schema {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.3.0';
+	const VERSION = '1.4.0';
 
 	/**
 	 * Table names (without prefix).
@@ -36,7 +36,8 @@ class Schema {
 	const AI_PROMPTS       = 'osq_ai_prompts';
 	const AI_NGWORDS       = 'osq_ai_ngwords';
 	const AI_ADVICE_JOBS   = 'osq_ai_advice_jobs';
-	const AI_ADVICE_CACHE  = 'osq_ai_advice_cache';
+	const AI_ADVICE_CACHE    = 'osq_ai_advice_cache';
+	const RESPONSE_HISTORY   = 'osq_response_history';
 
 	/**
 	 * Returns the schema SQL for all tables.
@@ -182,6 +183,25 @@ class Schema {
 			PRIMARY KEY  (cache_id),
 			UNIQUE KEY response_id (response_id),
 			KEY employee_id (employee_id)
+		) {$charset_collate};";
+
+		// Table: osq_response_history — archives completed responses before overwrite (for YoY radar chart).
+		$table_history = $wpdb->prefix . self::RESPONSE_HISTORY;
+		$sql[] = "CREATE TABLE {$table_history} (
+			history_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			employee_id bigint(20) unsigned NOT NULL,
+			fiscal_year smallint(4) unsigned NOT NULL,
+			method1_result text DEFAULT NULL,
+			method2_result text DEFAULT NULL,
+			is_high_stress_method1 tinyint(1) DEFAULT NULL,
+			is_high_stress_method2 tinyint(1) DEFAULT NULL,
+			completed_at datetime DEFAULT NULL,
+			org_snapshot varchar(255) DEFAULT NULL,
+			position_snapshot tinyint(1) DEFAULT NULL,
+			archived_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY  (history_id),
+			KEY employee_id (employee_id),
+			KEY fiscal_year (fiscal_year)
 		) {$charset_collate};";
 
 		return $sql;
