@@ -1043,7 +1043,7 @@ if ( $response && $response->is_complete && $employee ) {
 </style>
 
 <?php if ( $response && $response->is_complete && ! empty( $method2_data['eval_points'] ) ) : ?>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
 <script>
 (function() {
 	var labels = [
