@@ -58,8 +58,14 @@ class DbManager {
 			return (int) self::$active_company_id;
 		}
 
+		// Super-admin context switch (persisted via transient across requests).
 		$user_id = get_current_user_id();
 		if ( $user_id ) {
+			$ctx = get_transient( 'osq_super_admin_ctx_' . $user_id );
+			if ( $ctx > 0 ) {
+				return (int) $ctx;
+			}
+
 			$meta = (int) get_user_meta( $user_id, self::COMPANY_USER_META_KEY, true );
 			if ( $meta > 0 ) {
 				return $meta;
