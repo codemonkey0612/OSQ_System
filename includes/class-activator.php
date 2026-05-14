@@ -38,7 +38,7 @@ class Activator {
 	 *
 	 * @var string
 	 */
-	const DB_VERSION = '1.4.0';
+	const DB_VERSION = '1.5.0';
 
 	/**
 	 * Fired on plugin activation.
@@ -47,10 +47,12 @@ class Activator {
 	 */
 	public static function activate() {
 		self::check_requirements();
+		$previous_db_version = get_option( 'osq_db_version', '0' );
 		self::create_tables();
 		self::register_capabilities();
 		self::set_default_options();
 		self::seed_ai_data();
+		self::migrate_to_phase_3a( $previous_db_version );
 	}
 
 	/**
@@ -178,6 +180,99 @@ class Activator {
 					'reason'    => $item['reason'],
 					'is_active' => 1,
 				) );
+			}
+		}
+	}
+
+	/**
+	 * Phase 3a migration: seed the default "wellanc" tenant and backfill
+	 * company_id on every pre-existing row across all data tables.
+	 *
+	 * Safe to call on every activation — only runs once when upgrading from <1.5.0.
+	 *
+	 * @param string $previous_db_version DB version recorded before activation.
+	 * @return void
+	 */
+	private static function migrate_to_phase_3a( $previous_db_version ) {
+		if ( version_compare( $previous_db_version, '1.5.0', '>=' ) ) {
+			return; // Already migrated.
+		}
+
+		global $wpdb;
+		$companies_table = $wpdb->prefix . Database\Schema::COMPANIES;
+		$default_id      = Database\Schema::DEFAULT_COMPANY_ID;
+
+		// Step 1: seed default "wellanc" company at company_id = 1 (only if empty).
+		$existing = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$companies_table}" );
+		if ( 0 === $existing ) {
+			$wpdb->insert( $companies_table, array(
+				'company_id'     => $default_id,
+				'company_name'   => '株式会社wellanc',
+				'company_slug'   => 'wellanc',
+				'org_label_1'    => '組織1',
+				'org_label_2'    => '組織2',
+				'org_label_3'    => '組織3',
+				'min_group_size' => 5,
+				'is_active'      => 1,
+			) );
+		}
+
+		// Step 2: backfill company_id on every data table.
+		$tables_to_backfill = array(
+			Database\Schema::EMPLOYEES,
+			Database\Schema::RESPONSES,
+			Database\Schema::RESPONSE_HISTORY,
+			Database\Schema::AI_ADVICE_CACHE,
+			Database\Schema::AI_ADVICE_JOBS,
+			Database\Schema::FOLLOW_UP_TRACKING,
+		);
+
+		foreach ( $tables_to_backfill as $table_name ) {
+			$table = $wpdb->prefix . $table_name;
+			$wpdb->query( $wpdb->prepare(
+				"UPDATE {$table} SET company_id = %d WHERE company_id IS NULL",
+				$default_id
+			) );
+		}
+
+		// Step 2.5: drop the old single-column UNIQUE index on employee_number
+		// (replaced by the composite UNIQUE (company_id, employee_number) so different
+		// tenants can reuse the same employee_number). dbDelta does not drop indexes
+		// automatically, so we do it manually here. Safe to run repeatedly.
+		$employees_table = $wpdb->prefix . Database\Schema::EMPLOYEES;
+		$has_old_index   = $wpdb->get_var( $wpdb->prepare(
+			"SELECT COUNT(*) FROM information_schema.statistics
+			 WHERE table_schema = DATABASE() AND table_name = %s AND index_name = 'employee_number'",
+			$employees_table
+		) );
+		if ( $has_old_index ) {
+			$wpdb->query( "ALTER TABLE {$employees_table} DROP INDEX employee_number" );
+		}
+
+		// Step 3: backfill osq_company_id user meta on every existing WP user that
+		// is linked to an OSQ employee, an OSQ officer, or an OSQ admin. WP admins
+		// (role=administrator) intentionally get no meta — they act as system admins
+		// who can be assigned the wellanc super-admin role later.
+		$employees_table = $wpdb->prefix . Database\Schema::EMPLOYEES;
+		$linked_user_ids = $wpdb->get_col(
+			"SELECT DISTINCT wp_user_id FROM {$employees_table} WHERE wp_user_id IS NOT NULL"
+		);
+		foreach ( (array) $linked_user_ids as $uid ) {
+			$existing = get_user_meta( (int) $uid, 'osq_company_id', true );
+			if ( '' === $existing || null === $existing ) {
+				update_user_meta( (int) $uid, 'osq_company_id', $default_id );
+			}
+		}
+
+		// Also tag standalone officer/general-admin users (those without an employee row).
+		$role_users = get_users( array(
+			'role__in' => array( 'osq_implementation_officer', 'osq_general_administrator' ),
+			'fields'   => 'ID',
+		) );
+		foreach ( (array) $role_users as $uid ) {
+			$existing = get_user_meta( (int) $uid, 'osq_company_id', true );
+			if ( '' === $existing || null === $existing ) {
+				update_user_meta( (int) $uid, 'osq_company_id', $default_id );
 			}
 		}
 	}

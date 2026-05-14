@@ -95,31 +95,7 @@ if ( $response && $response->is_complete && $employee ) {
 
 
 <div id="osq-employee-dashboard" class="osq-ui-container osq-admin-dashboard osq-employee-theme">
-	<aside class="osq-admin-sidebar">
-		<div class="osq-sidebar-header">
-			<span class="osq-logo"><?php esc_html_e( 'OSQ Portal', 'osq-stress-check' ); ?></span>
-		</div>
-		<nav class="osq-admin-nav">
-			<ul>
-				<?php if ( ! $must_change_password ) : ?>
-					<li class="active" data-tab="dashboard">
-						<span class="dashicons dashicons-dashboard"></span>
-						<?php esc_html_e( 'Dashboard', 'osq-stress-check' ); ?>
-					</li>
-				<?php endif; ?>
-				<li class="<?php echo $must_change_password ? 'active' : ''; ?>" data-tab="profile">
-					<span class="dashicons dashicons-admin-users"></span>
-					<?php esc_html_e( 'Profile', 'osq-stress-check' ); ?>
-				</li>
-				<?php if ( ! $must_change_password ) : ?>
-					<li data-tab="settings">
-						<span class="dashicons dashicons-admin-settings"></span>
-						<?php esc_html_e( 'Settings', 'osq-stress-check' ); ?>
-					</li>
-				<?php endif; ?>
-			</ul>
-		</nav>
-	</aside>
+	<?php \OSQ\Auth\NavigationBuilder::render_sidebar( 'my_check' ); ?>
 
 	<main class="osq-admin-main">
 		<header class="osq-admin-header">
@@ -128,11 +104,29 @@ if ( $response && $response->is_complete && $employee ) {
 			</div>
 			<div class="osq-header-right">
 				<span class="osq-user-welcome"><?php printf( esc_html__( 'Hello, %s', 'osq-stress-check' ), esc_html( $employee->name ?? '' ) ); ?></span>
-				<a href="<?php echo esc_url( wp_logout_url( home_url( '/' . \OSQ\Auth\EmployeeUiHandler::LOGIN_SLUG . '/' ) ) ); ?>" class="osq-logout-btn" style="margin-left: 20px;">
-					<?php esc_html_e( 'Logout', 'osq-stress-check' ); ?>
-				</a>
 			</div>
 		</header>
+
+		<nav class="osq-inner-tab-nav">
+			<ul>
+				<?php if ( ! $must_change_password ) : ?>
+				<li class="active" data-tab="dashboard">
+					<span class="dashicons dashicons-dashboard"></span>
+					<span><?php esc_html_e( 'Dashboard', 'osq-stress-check' ); ?></span>
+				</li>
+				<?php endif; ?>
+				<li class="<?php echo $must_change_password ? 'active' : ''; ?>" data-tab="profile">
+					<span class="dashicons dashicons-admin-users"></span>
+					<span><?php esc_html_e( 'Profile', 'osq-stress-check' ); ?></span>
+				</li>
+				<?php if ( ! $must_change_password ) : ?>
+				<li data-tab="settings">
+					<span class="dashicons dashicons-admin-settings"></span>
+					<span><?php esc_html_e( 'Settings', 'osq-stress-check' ); ?></span>
+				</li>
+				<?php endif; ?>
+			</ul>
+		</nav>
 
 		<div class="osq-admin-content">
 			<!-- Dashboard Main Tab -->
@@ -654,6 +648,45 @@ if ( $response && $response->is_complete && $employee ) {
 	animation: fadeIn 0.3s ease;
 }
 
+/* Inner tab nav (Dashboard / Profile / Settings) */
+.osq-inner-tab-nav {
+	background: white;
+	border-bottom: 1px solid #e2e8f0;
+	padding: 0 40px;
+}
+.osq-inner-tab-nav ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: flex;
+}
+.osq-inner-tab-nav li {
+	padding: 12px 20px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: #64748b;
+	font-weight: 500;
+	font-size: 14px;
+	border-bottom: 3px solid transparent;
+	transition: all 0.2s;
+}
+.osq-inner-tab-nav li:hover {
+	color: #1e293b;
+	border-bottom-color: #cbd5e1;
+}
+.osq-inner-tab-nav li.active {
+	color: #1e293b;
+	border-bottom-color: #6ee7b7;
+	font-weight: 600;
+}
+.osq-inner-tab-nav li .dashicons {
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+}
+
 /* Employee Specific Styles */
 .osq-employee-theme .osq-admin-sidebar {
 	background: #064e3b; /* Dark emerald for employee */
@@ -1003,6 +1036,15 @@ if ( $response && $response->is_complete && $employee ) {
 	.osq-logout-btn {
 		padding: 6px 12px;
 		font-size: 13px;
+	}
+
+	.osq-inner-tab-nav {
+		padding: 0 15px;
+		overflow-x: auto;
+	}
+	.osq-inner-tab-nav li {
+		white-space: nowrap;
+		padding: 10px 14px;
 	}
 
 	.osq-admin-content {

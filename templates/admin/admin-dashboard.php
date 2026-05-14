@@ -25,41 +25,23 @@ $current_user = wp_get_current_user();
 $db = \OSQ\Plugin::get_instance()->db();
 $osq_settings = get_option( 'osq_settings', array() );
 $enable_group_analysis = isset($osq_settings['enable_group_analysis']) ? (bool) $osq_settings['enable_group_analysis'] : true;
+
+// Determine which inner tab to open (supports ?tab= URL param from NavigationBuilder links).
+$allowed_tabs   = array( 'overview', 'employees', 'import', 'analysis', 'settings' );
+$initial_tab    = in_array( $_GET['tab'] ?? '', $allowed_tabs, true ) ? $_GET['tab'] : 'overview';
+
+// Map inner tab → NavigationBuilder sidebar active key.
+$sidebar_key_map = array(
+	'employees' => 'manage',
+	'analysis'  => 'analysis',
+	'settings'  => 'settings',
+);
+$active_sidebar_key = $sidebar_key_map[ $initial_tab ] ?? 'manage';
 ?>
 
 <div id="osq-admin-dashboard" class="osq-ui-container osq-admin-dashboard">
 	<div id="osq-sidebar-overlay" class="osq-sidebar-overlay"></div>
-	<aside class="osq-admin-sidebar">
-		<div class="osq-sidebar-header">
-			<span class="osq-logo"><?php esc_html_e( 'OSQ Admin', 'osq-stress-check' ); ?></span>
-		</div>
-		<nav class="osq-admin-nav">
-			<ul>
-				<li class="active" data-tab="overview">
-					<span class="dashicons dashicons-dashboard"></span>
-					<?php esc_html_e( 'Overview', 'osq-stress-check' ); ?>
-				</li>
-				<li data-tab="employees">
-					<span class="dashicons dashicons-groups"></span>
-					<?php esc_html_e( 'Employees', 'osq-stress-check' ); ?>
-				</li>
-				<li data-tab="import">
-					<span class="dashicons dashicons-upload"></span>
-					<?php esc_html_e( 'CSV Import', 'osq-stress-check' ); ?>
-				</li>
-				<?php if ( $enable_group_analysis ) : ?>
-				<li data-tab="analysis">
-					<span class="dashicons dashicons-chart-bar"></span>
-					<?php esc_html_e( 'Group Analysis', 'osq-stress-check' ); ?>
-				</li>
-				<?php endif; ?>
-				<li data-tab="settings">
-					<span class="dashicons dashicons-admin-settings"></span>
-					<?php esc_html_e( 'Settings', 'osq-stress-check' ); ?>
-				</li>
-			</ul>
-		</nav>
-	</aside>
+	<?php \OSQ\Auth\NavigationBuilder::render_sidebar( $active_sidebar_key ); ?>
 
 	<main class="osq-admin-main">
 		<header class="osq-admin-header">
@@ -67,19 +49,52 @@ $enable_group_analysis = isset($osq_settings['enable_group_analysis']) ? (bool) 
 				<button id="osq-mobile-toggle" class="osq-hamburger">
 					<span class="dashicons dashicons-menu"></span>
 				</button>
-				<h2 id="osq-tab-title"><?php esc_html_e( 'Overview', 'osq-stress-check' ); ?></h2>
+				<h2 id="osq-tab-title"><?php
+					$tab_labels = array(
+						'overview'  => __( 'Overview', 'osq-stress-check' ),
+						'employees' => __( 'Employees', 'osq-stress-check' ),
+						'import'    => __( 'CSV Import', 'osq-stress-check' ),
+						'analysis'  => __( 'Group Analysis', 'osq-stress-check' ),
+						'settings'  => __( 'Settings', 'osq-stress-check' ),
+					);
+					echo esc_html( $tab_labels[ $initial_tab ] ?? __( 'Overview', 'osq-stress-check' ) );
+				?></h2>
 			</div>
 			<div class="osq-header-right">
 				<span class="osq-user-welcome"><?php printf( esc_html__( 'Hello, %s', 'osq-stress-check' ), esc_html( $current_user->display_name ) ); ?></span>
-				<a href="<?php echo esc_url( wp_logout_url( home_url( '/osq-admin-login/' ) ) ); ?>" class="osq-logout-btn">
-					<?php esc_html_e( 'Logout', 'osq-stress-check' ); ?>
-				</a>
 			</div>
 		</header>
 
+		<nav class="osq-inner-tab-nav">
+			<ul>
+				<li class="<?php echo 'overview' === $initial_tab ? 'active' : ''; ?>" data-tab="overview">
+					<span class="dashicons dashicons-dashboard"></span>
+					<span><?php esc_html_e( 'Overview', 'osq-stress-check' ); ?></span>
+				</li>
+				<li class="<?php echo 'employees' === $initial_tab ? 'active' : ''; ?>" data-tab="employees">
+					<span class="dashicons dashicons-groups"></span>
+					<span><?php esc_html_e( 'Employees', 'osq-stress-check' ); ?></span>
+				</li>
+				<li class="<?php echo 'import' === $initial_tab ? 'active' : ''; ?>" data-tab="import">
+					<span class="dashicons dashicons-upload"></span>
+					<span><?php esc_html_e( 'CSV Import', 'osq-stress-check' ); ?></span>
+				</li>
+				<?php if ( $enable_group_analysis ) : ?>
+				<li class="<?php echo 'analysis' === $initial_tab ? 'active' : ''; ?>" data-tab="analysis">
+					<span class="dashicons dashicons-chart-bar"></span>
+					<span><?php esc_html_e( 'Group Analysis', 'osq-stress-check' ); ?></span>
+				</li>
+				<?php endif; ?>
+				<li class="<?php echo 'settings' === $initial_tab ? 'active' : ''; ?>" data-tab="settings">
+					<span class="dashicons dashicons-admin-settings"></span>
+					<span><?php esc_html_e( 'Settings', 'osq-stress-check' ); ?></span>
+				</li>
+			</ul>
+		</nav>
+
 		<div class="osq-admin-content">
 			<!-- Overview Tab -->
-			<section id="tab-overview" class="osq-tab-panel active">
+			<section id="tab-overview" class="osq-tab-panel <?php echo 'overview' === $initial_tab ? 'active' : ''; ?>">
 				<div class="osq-stats-grid">
 					<div class="osq-stat-card">
 						<h3><?php esc_html_e( 'Total Employees', 'osq-stress-check' ); ?></h3>
@@ -100,7 +115,7 @@ $enable_group_analysis = isset($osq_settings['enable_group_analysis']) ? (bool) 
 			</section>
 
 			<!-- Employees Tab -->
-			<section id="tab-employees" class="osq-tab-panel">
+			<section id="tab-employees" class="osq-tab-panel <?php echo 'employees' === $initial_tab ? 'active' : ''; ?>">
 				<div class="osq-panel-header">
 					<div class="osq-search-box">
 						<input type="text" id="osq-admin-employee-search" placeholder="<?php esc_attr_e( 'Search employees...', 'osq-stress-check' ); ?>" class="osq-input-search">
@@ -138,7 +153,7 @@ $enable_group_analysis = isset($osq_settings['enable_group_analysis']) ? (bool) 
 			</section>
 
 			<!-- Import Tab -->
-			<section id="tab-import" class="osq-tab-panel">
+			<section id="tab-import" class="osq-tab-panel <?php echo 'import' === $initial_tab ? 'active' : ''; ?>">
 				<div class="osq-import-container">
 					<div class="osq-import-dropzone" id="osq-csv-dropzone">
 						<span class="dashicons dashicons-upload"></span>
@@ -194,7 +209,7 @@ $enable_group_analysis = isset($osq_settings['enable_group_analysis']) ? (bool) 
 
 			<?php if ( $enable_group_analysis ) : ?>
 			<!-- Analysis Tab -->
-			<section id="tab-analysis" class="osq-tab-panel">
+			<section id="tab-analysis" class="osq-tab-panel <?php echo 'analysis' === $initial_tab ? 'active' : ''; ?>">
 				<div class="osq-analysis-section">
 					<h4><?php esc_html_e( 'Group Analysis Summary (10+ Respondents)', 'osq-stress-check' ); ?></h4>
 					<div class="osq-table-responsive">
@@ -262,7 +277,7 @@ $enable_group_analysis = isset($osq_settings['enable_group_analysis']) ? (bool) 
 			<?php endif; ?>
 
 			<!-- Settings Tab -->
-			<section id="tab-settings" class="osq-tab-panel">
+			<section id="tab-settings" class="osq-tab-panel <?php echo 'settings' === $initial_tab ? 'active' : ''; ?>">
 				<?php 
 				$current_language = $osq_settings['language'] ?? 'ja';
 				$session_timeout = $osq_settings['session_timeout'] ?? 30;
@@ -440,6 +455,45 @@ $enable_group_analysis = isset($osq_settings['enable_group_analysis']) ? (bool) 
 .osq-tab-panel.active {
 	display: block;
 	animation: fadeIn 0.3s ease;
+}
+
+/* Inner tab nav */
+.osq-inner-tab-nav {
+	background: white;
+	border-bottom: 1px solid #e2e8f0;
+	padding: 0 40px;
+}
+.osq-inner-tab-nav ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: flex;
+}
+.osq-inner-tab-nav li {
+	padding: 12px 20px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: #64748b;
+	font-weight: 500;
+	font-size: 14px;
+	border-bottom: 3px solid transparent;
+	transition: all 0.2s;
+}
+.osq-inner-tab-nav li:hover {
+	color: #1e293b;
+	border-bottom-color: #cbd5e1;
+}
+.osq-inner-tab-nav li.active {
+	color: #1e293b;
+	border-bottom-color: #38bdf8;
+	font-weight: 600;
+}
+.osq-inner-tab-nav li .dashicons {
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
 }
 
 .osq-stats-grid {
@@ -755,7 +809,16 @@ input:checked + .osq-toggle-slider:before {
 	.osq-admin-header {
 		padding: 15px 20px;
 	}
-	
+
+	.osq-inner-tab-nav {
+		padding: 0 15px;
+		overflow-x: auto;
+	}
+	.osq-inner-tab-nav li {
+		white-space: nowrap;
+		padding: 10px 14px;
+	}
+
 	.osq-admin-content {
 		padding: 20px;
 	}
@@ -821,23 +884,23 @@ jQuery(document).ready(function($) {
 	loadImportedUsers();
 
 	// Hamburger Menu Toggle
-	$('#osq-mobile-toggle, #osq-sidebar-overlay, .osq-admin-nav li').on('click', function(e) {
+	$('#osq-mobile-toggle, #osq-sidebar-overlay').on('click', function(e) {
 		if (window.innerWidth <= 1024) {
 			$('#osq-admin-dashboard').toggleClass('osq-sidebar-open');
 		}
 	});
 
-	// Tab switching logic
-	$('.osq-admin-nav li').on('click', function() {
+	// Tab switching logic (inner tab bar)
+	$('.osq-inner-tab-nav li').on('click', function() {
 		const tabId = $(this).data('tab');
-		
-		$('.osq-admin-nav li').removeClass('active');
+		if ( ! tabId ) return;
+
+		$('.osq-inner-tab-nav li').removeClass('active');
 		$(this).addClass('active');
-		
+
 		$('.osq-tab-panel').removeClass('active');
 		$('#tab-' + tabId).addClass('active');
-		
-		// Map tab keys to localized names
+
 		const tabNames = {
 			'overview': i18n.dash_overview,
 			'employees': i18n.dash_employees,
@@ -845,8 +908,8 @@ jQuery(document).ready(function($) {
 			'analysis': i18n.dash_analysis,
 			'settings': i18n.dash_settings
 		};
-		
-		$('#osq-tab-title').text(tabNames[tabId] || $(this).text().trim());
+
+		$('#osq-tab-title').text(tabNames[tabId] || $(this).find('span:not(.dashicons)').text().trim());
 	});
 
 	function loadStats() {

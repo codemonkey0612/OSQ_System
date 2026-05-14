@@ -303,8 +303,8 @@
             OSQ_Questionnaire.init();
         }
 
-        // Tab Switching Logic for Dashboards (Sidebar based)
-        $('.osq-admin-nav li[data-tab]').on('click', function (e) {
+        // Tab Switching Logic for Dashboards (inner tab bar)
+        $('.osq-inner-tab-nav li[data-tab]').on('click', function (e) {
             e.preventDefault();
 
             // Don't allow switching if password change is forced
@@ -314,7 +314,7 @@
                 }
             }
 
-            $('.osq-admin-nav li').removeClass('active');
+            $('.osq-inner-tab-nav li').removeClass('active');
             $(this).addClass('active');
 
             var target = $(this).data('tab');

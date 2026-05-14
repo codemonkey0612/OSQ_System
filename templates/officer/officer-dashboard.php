@@ -26,31 +26,7 @@ $db = \OSQ\Plugin::get_instance()->db();
 
 <div id="osq-officer-dashboard" class="osq-ui-container osq-admin-dashboard osq-officer-theme">
 	<div id="osq-sidebar-overlay" class="osq-sidebar-overlay"></div>
-	<aside class="osq-admin-sidebar">
-		<div class="osq-sidebar-header">
-			<span class="osq-logo"><?php esc_html_e( 'OSQ Officer', 'osq-stress-check' ); ?></span>
-		</div>
-		<nav class="osq-admin-nav">
-			<ul>
-				<li class="active" data-tab="responses">
-					<span class="dashicons dashicons-id"></span>
-					<?php esc_html_e( 'Individual Responses', 'osq-stress-check' ); ?>
-				</li>
-				<li data-tab="profile">
-					<span class="dashicons dashicons-admin-users"></span>
-					<?php esc_html_e( 'Profile', 'osq-stress-check' ); ?>
-				</li>
-				<li data-tab="followup">
-					<span class="dashicons dashicons-calendar-alt"></span>
-					<?php esc_html_e( 'Follow-up Tracking', 'osq-stress-check' ); ?>
-				</li>
-				<li data-tab="settings">
-					<span class="dashicons dashicons-admin-settings"></span>
-					<?php esc_html_e( 'Settings', 'osq-stress-check' ); ?>
-				</li>
-			</ul>
-		</nav>
-	</aside>
+	<?php \OSQ\Auth\NavigationBuilder::render_sidebar( 'individual' ); ?>
 
 	<main class="osq-admin-main">
 		<header class="osq-admin-header">
@@ -62,11 +38,29 @@ $db = \OSQ\Plugin::get_instance()->db();
 			</div>
 			<div class="osq-header-right">
 				<span class="osq-user-welcome"><?php printf( esc_html__( 'Hello, %s', 'osq-stress-check' ), esc_html( $current_user->display_name ) ); ?></span>
-				<a href="<?php echo esc_url( wp_logout_url( home_url( '/osq-officer-login/' ) ) ); ?>" class="osq-logout-btn">
-					<?php esc_html_e( 'Logout', 'osq-stress-check' ); ?>
-				</a>
 			</div>
 		</header>
+
+		<nav class="osq-inner-tab-nav">
+			<ul>
+				<li class="active" data-tab="responses">
+					<span class="dashicons dashicons-id-alt"></span>
+					<span><?php esc_html_e( 'Individual Responses', 'osq-stress-check' ); ?></span>
+				</li>
+				<li data-tab="followup">
+					<span class="dashicons dashicons-calendar-alt"></span>
+					<span><?php esc_html_e( 'Follow-up Tracking', 'osq-stress-check' ); ?></span>
+				</li>
+				<li data-tab="profile">
+					<span class="dashicons dashicons-admin-users"></span>
+					<span><?php esc_html_e( 'Profile', 'osq-stress-check' ); ?></span>
+				</li>
+				<li data-tab="settings">
+					<span class="dashicons dashicons-admin-settings"></span>
+					<span><?php esc_html_e( 'Settings', 'osq-stress-check' ); ?></span>
+				</li>
+			</ul>
+		</nav>
 
 		<div class="osq-admin-content">
 			<!-- Responses Tab -->
@@ -540,7 +534,16 @@ $db = \OSQ\Plugin::get_instance()->db();
 	.osq-admin-header {
 		padding: 15px 20px;
 	}
-	
+
+	.osq-inner-tab-nav {
+		padding: 0 15px;
+		overflow-x: auto;
+	}
+	.osq-inner-tab-nav li {
+		white-space: nowrap;
+		padding: 10px 14px;
+	}
+
 	.osq-admin-content {
 		padding: 20px;
 	}
@@ -549,7 +552,7 @@ $db = \OSQ\Plugin::get_instance()->db();
 		grid-template-columns: repeat(2, 1fr);
 		gap: 15px;
 	}
-	
+
 	.osq-sidebar-header span { display: block; }
 	.osq-admin-nav li span:not(.dashicons) { display: block; }
 	.osq-admin-nav li .dashicons { margin-right: 12px; }
@@ -621,6 +624,45 @@ $db = \OSQ\Plugin::get_instance()->db();
 .osq-officer-theme .osq-admin-nav li.active {
 	background: #4a3457;
 	border-left-color: #d8b4e2;
+}
+
+/* Inner tab nav */
+.osq-inner-tab-nav {
+	background: white;
+	border-bottom: 1px solid #e2e8f0;
+	padding: 0 40px;
+}
+.osq-inner-tab-nav ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: flex;
+}
+.osq-inner-tab-nav li {
+	padding: 12px 20px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: #64748b;
+	font-weight: 500;
+	font-size: 14px;
+	border-bottom: 3px solid transparent;
+	transition: all 0.2s;
+}
+.osq-inner-tab-nav li:hover {
+	color: #1e293b;
+	border-bottom-color: #cbd5e1;
+}
+.osq-inner-tab-nav li.active {
+	color: #1e293b;
+	border-bottom-color: #d8b4e2;
+	font-weight: 600;
+}
+.osq-inner-tab-nav li .dashicons {
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
 }
 .osq-status-badge--high-stress {
 	background: #fee2e2;

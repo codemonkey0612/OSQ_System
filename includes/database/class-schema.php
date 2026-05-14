@@ -24,20 +24,26 @@ class Schema {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.4.0';
+	const VERSION = '1.5.0';
 
 	/**
 	 * Table names (without prefix).
 	 */
-	const EMPLOYEES        = 'osq_employees';
-	const RESPONSES        = 'osq_stress_responses';
-	const SESSIONS         = 'osq_sessions';
+	const EMPLOYEES          = 'osq_employees';
+	const RESPONSES          = 'osq_stress_responses';
+	const SESSIONS           = 'osq_sessions';
 	const FOLLOW_UP_TRACKING = 'osq_follow_up_tracking';
-	const AI_PROMPTS       = 'osq_ai_prompts';
-	const AI_NGWORDS       = 'osq_ai_ngwords';
-	const AI_ADVICE_JOBS   = 'osq_ai_advice_jobs';
+	const AI_PROMPTS         = 'osq_ai_prompts';
+	const AI_NGWORDS         = 'osq_ai_ngwords';
+	const AI_ADVICE_JOBS     = 'osq_ai_advice_jobs';
 	const AI_ADVICE_CACHE    = 'osq_ai_advice_cache';
 	const RESPONSE_HISTORY   = 'osq_response_history';
+	const COMPANIES          = 'osq_companies';
+
+	/**
+	 * Default company_id assigned to all pre-Phase-3a data during migration.
+	 */
+	const DEFAULT_COMPANY_ID = 1;
 
 	/**
 	 * Returns the schema SQL for all tables.
@@ -54,9 +60,10 @@ class Schema {
 
 		$sql = array();
 
-		// Table: osq_employees
+		// Table: osq_employees (multi-tenant via company_id from Phase 3a).
 		$sql[] = "CREATE TABLE {$table_employees} (
 			employee_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			company_id bigint(20) unsigned DEFAULT NULL,
 			wp_user_id bigint(20) unsigned DEFAULT NULL,
 			employee_number varchar(50) NOT NULL,
 			name varchar(255) NOT NULL DEFAULT '',
@@ -74,13 +81,15 @@ class Schema {
 			created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 			PRIMARY KEY  (employee_id),
-			UNIQUE KEY employee_number (employee_number),
-			KEY wp_user_id (wp_user_id)
+			UNIQUE KEY company_employee_number (company_id, employee_number),
+			KEY wp_user_id (wp_user_id),
+			KEY company_id (company_id)
 		) {$charset_collate};";
 
-		// Table: osq_stress_responses
+		// Table: osq_stress_responses (multi-tenant via company_id from Phase 3a).
 		$sql[] = "CREATE TABLE {$table_responses} (
 			response_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			company_id bigint(20) unsigned DEFAULT NULL,
 			employee_id bigint(20) unsigned NOT NULL,
 			response_data longtext DEFAULT NULL,
 			is_complete tinyint(1) NOT NULL DEFAULT 0,
@@ -92,7 +101,8 @@ class Schema {
 			created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 			PRIMARY KEY  (response_id),
-			KEY employee_id (employee_id)
+			KEY employee_id (employee_id),
+			KEY company_id (company_id)
 		) {$charset_collate};";
 
 		// Table: osq_sessions
@@ -107,10 +117,11 @@ class Schema {
 			KEY employee_id (employee_id)
 		) {$charset_collate};";
 
-		// Table: osq_follow_up_tracking
+		// Table: osq_follow_up_tracking (multi-tenant via company_id from Phase 3a).
 		$table_follow_up = $wpdb->prefix . self::FOLLOW_UP_TRACKING;
 		$sql[] = "CREATE TABLE {$table_follow_up} (
 			follow_up_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			company_id bigint(20) unsigned DEFAULT NULL,
 			employee_id bigint(20) unsigned NOT NULL,
 			officer_id bigint(20) unsigned NOT NULL,
 			status varchar(50) NOT NULL DEFAULT 'Scheduled',
@@ -122,7 +133,8 @@ class Schema {
 			PRIMARY KEY  (follow_up_id),
 			KEY employee_id (employee_id),
 			KEY officer_id (officer_id),
-			KEY status (status)
+			KEY status (status),
+			KEY company_id (company_id)
 		) {$charset_collate};";
 
 		// Table: osq_ai_prompts — industry-specific prompt templates (DB-managed, WP admin editable).
@@ -152,10 +164,11 @@ class Schema {
 			UNIQUE KEY word (word)
 		) {$charset_collate};";
 
-		// Table: osq_ai_advice_jobs — async generation queue (WP-Cron processed).
+		// Table: osq_ai_advice_jobs — async generation queue (WP-Cron processed). Multi-tenant via company_id.
 		$table_ai_jobs = $wpdb->prefix . self::AI_ADVICE_JOBS;
 		$sql[] = "CREATE TABLE {$table_ai_jobs} (
 			job_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			company_id bigint(20) unsigned DEFAULT NULL,
 			employee_id bigint(20) unsigned NOT NULL,
 			response_id bigint(20) unsigned NOT NULL,
 			status varchar(20) NOT NULL DEFAULT 'pending' COMMENT 'pending|processing|done|failed',
@@ -165,13 +178,15 @@ class Schema {
 			updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 			PRIMARY KEY  (job_id),
 			KEY employee_id (employee_id),
-			KEY status (status)
+			KEY status (status),
+			KEY company_id (company_id)
 		) {$charset_collate};";
 
-		// Table: osq_ai_advice_cache — generated AI advice, keyed by response_id.
+		// Table: osq_ai_advice_cache — generated AI advice, keyed by response_id. Multi-tenant via company_id.
 		$table_ai_cache = $wpdb->prefix . self::AI_ADVICE_CACHE;
 		$sql[] = "CREATE TABLE {$table_ai_cache} (
 			cache_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			company_id bigint(20) unsigned DEFAULT NULL,
 			employee_id bigint(20) unsigned NOT NULL,
 			response_id bigint(20) unsigned NOT NULL,
 			advice_text longtext NOT NULL,
@@ -182,13 +197,15 @@ class Schema {
 			created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY  (cache_id),
 			UNIQUE KEY response_id (response_id),
-			KEY employee_id (employee_id)
+			KEY employee_id (employee_id),
+			KEY company_id (company_id)
 		) {$charset_collate};";
 
-		// Table: osq_response_history — archives completed responses before overwrite (for YoY radar chart).
+		// Table: osq_response_history — archives completed responses (YoY radar chart). Multi-tenant via company_id.
 		$table_history = $wpdb->prefix . self::RESPONSE_HISTORY;
 		$sql[] = "CREATE TABLE {$table_history} (
 			history_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			company_id bigint(20) unsigned DEFAULT NULL,
 			employee_id bigint(20) unsigned NOT NULL,
 			fiscal_year smallint(4) unsigned NOT NULL,
 			method1_result text DEFAULT NULL,
@@ -201,7 +218,29 @@ class Schema {
 			archived_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY  (history_id),
 			KEY employee_id (employee_id),
-			KEY fiscal_year (fiscal_year)
+			KEY fiscal_year (fiscal_year),
+			KEY company_id (company_id)
+		) {$charset_collate};";
+
+		// Table: osq_companies — tenant root (Phase 3a). Each row = one client company that uses the system.
+		$table_companies = $wpdb->prefix . self::COMPANIES;
+		$sql[] = "CREATE TABLE {$table_companies} (
+			company_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			company_name varchar(255) NOT NULL,
+			company_slug varchar(100) NOT NULL,
+			org_label_1 varchar(100) DEFAULT '組織1',
+			org_label_2 varchar(100) DEFAULT '組織2',
+			org_label_3 varchar(100) DEFAULT '組織3',
+			org_label_4 varchar(100) DEFAULT NULL,
+			org_label_5 varchar(100) DEFAULT NULL,
+			min_group_size tinyint unsigned NOT NULL DEFAULT 5,
+			excluded_orgs text DEFAULT NULL,
+			is_active tinyint(1) NOT NULL DEFAULT 1,
+			created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			PRIMARY KEY  (company_id),
+			UNIQUE KEY company_slug (company_slug),
+			KEY is_active (is_active)
 		) {$charset_collate};";
 
 		return $sql;

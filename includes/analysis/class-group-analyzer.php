@@ -7,6 +7,7 @@
 
 namespace OSQ\Analysis;
 
+use OSQ\Database\DbManager;
 use OSQ\Database\Schema;
 
 // Prevent direct access.
@@ -50,6 +51,12 @@ class GroupAnalyzer {
 		// Build WHERE clause from filter.
 		$where  = array( 'r.is_complete = 1' );
 		$values = array();
+
+		// Tenant scope: restrict to the current company unless cross-tenant mode is on.
+		if ( ! DbManager::is_cross_tenant_mode() ) {
+			$where[]  = 'e.company_id = %d';
+			$values[] = DbManager::current_company_id();
+		}
 
 		if ( ! empty( $filter['organization_1'] ) ) {
 			$where[]  = 'e.organization_1 = %s';
@@ -112,6 +119,12 @@ class GroupAnalyzer {
 		// Total employees in group.
 		$where  = array( '1=1' );
 		$values = array();
+
+		// Tenant scope: restrict to the current company unless cross-tenant mode is on.
+		if ( ! DbManager::is_cross_tenant_mode() ) {
+			$where[]  = 'e.company_id = %d';
+			$values[] = DbManager::current_company_id();
+		}
 
 		if ( ! empty( $filter['organization_1'] ) ) {
 			$where[]  = 'e.organization_1 = %s';

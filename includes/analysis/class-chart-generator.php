@@ -7,6 +7,7 @@
 
 namespace OSQ\Analysis;
 
+use OSQ\Database\DbManager;
 use OSQ\Database\Schema;
 use OSQ\Scoring\ConversionTables;
 
@@ -50,10 +51,17 @@ class ChartGenerator {
 
 		$employees_table = $wpdb->prefix . Schema::EMPLOYEES;
 
-		// Get distinct organization values.
-		$orgs = $wpdb->get_col(
-			"SELECT DISTINCT {$org_level} FROM {$employees_table} WHERE {$org_level} != '' ORDER BY {$org_level}"
-		);
+		// Get distinct organization values, scoped to the current tenant.
+		if ( DbManager::is_cross_tenant_mode() ) {
+			$orgs = $wpdb->get_col(
+				"SELECT DISTINCT {$org_level} FROM {$employees_table} WHERE {$org_level} != '' ORDER BY {$org_level}"
+			);
+		} else {
+			$orgs = $wpdb->get_col( $wpdb->prepare(
+				"SELECT DISTINCT {$org_level} FROM {$employees_table} WHERE {$org_level} != '' AND company_id = %d ORDER BY {$org_level}",
+				DbManager::current_company_id()
+			) );
+		}
 
 		$labels = array();
 		$data   = array();

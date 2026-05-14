@@ -106,30 +106,24 @@
         loadResponses();
 
         // Hamburger Menu Toggle
-        $('#osq-mobile-toggle, #osq-sidebar-overlay, .osq-admin-nav li').on('click', function(e) {
+        $('#osq-mobile-toggle, #osq-sidebar-overlay').on('click', function(e) {
             if (window.innerWidth <= 1024) {
                 $('#osq-officer-dashboard').toggleClass('osq-sidebar-open');
             }
         });
 
-        // Tab Switching Logic
-        $('.osq-admin-nav li').on('click', function () {
+        // Tab Switching Logic (inner tab bar)
+        $('.osq-inner-tab-nav li').on('click', function () {
             const tabId = $(this).data('tab');
 
-            $('.osq-admin-nav li').removeClass('active');
+            $('.osq-inner-tab-nav li').removeClass('active');
             $(this).addClass('active');
 
             $('.osq-tab-panel').removeClass('active');
             $('#tab-' + tabId).addClass('active');
 
-            // Map tab keys to localized names (fallback if needed)
-            const tabNames = {
-                'responses': $(this).text().trim(),
-                'settings': $(this).text().trim()
-            };
+            $('#osq-tab-title').text($(this).find('span:not(.dashicons)').text().trim());
 
-            $('#osq-tab-title').text(tabNames[tabId] || $(this).text().trim());
-            
             // Load data for specific tabs when switched
             if (tabId === 'followup') {
                 loadFollowupTracking();

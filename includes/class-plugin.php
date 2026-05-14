@@ -69,6 +69,7 @@ class Plugin {
 		( new Auth\EmployeeUiHandler() )->init();
 		( new Auth\AdminUiHandler() )->init();
 		( new Auth\OfficerUiHandler() )->init();
+		( new Auth\PortalRouter() )->init();
 
 		// Initialize questionnaire handler (AJAX endpoints).
 		( new Questionnaire\QuestionnaireHandler() )->init();

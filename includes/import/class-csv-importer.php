@@ -506,7 +506,10 @@ class CsvImporter {
 
 		$dob = ! empty( $row['date_of_birth'] ) ? str_replace( '/', '-', $row['date_of_birth'] ) : null;
 
+		$company_id = \OSQ\Database\DbManager::current_company_id();
+
 		$wpdb->insert( $table, array(
+			'company_id'      => $company_id,
 			'wp_user_id'      => $wp_user_id,
 			'employee_number' => sanitize_text_field( $row['employee_number'] ),
 			'name'            => sanitize_text_field( $row['name'] ?? '' ),
@@ -522,6 +525,11 @@ class CsvImporter {
 			'industry_type'   => ! empty( $row['industry_type'] ) ? absint( $row['industry_type'] ) : null,
 			'hire_date'       => ! empty( $row['hire_date'] ) ? str_replace( '/', '-', $row['hire_date'] ) : null,
 		) );
+
+		// Tag the new WP user with the same company_id so future logins are tenant-correct.
+		if ( $wp_user_id ) {
+			update_user_meta( $wp_user_id, \OSQ\Database\DbManager::COMPANY_USER_META_KEY, $company_id );
+		}
 	}
 
 	/**
