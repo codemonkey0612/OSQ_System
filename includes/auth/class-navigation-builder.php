@@ -117,8 +117,8 @@ class NavigationBuilder {
 			<nav class="osq-admin-nav">
 				<ul>
 					<?php foreach ( $items as $item ) : ?>
-						<li class="<?php echo $item['key'] === $active_key ? 'active' : ''; ?>">
-							<a href="<?php echo esc_url( $item['url'] ); ?>" style="color:inherit;text-decoration:none;display:flex;align-items:center;width:100%;">
+						<li class="<?php echo $item['key'] === $active_key ? 'active' : ''; ?>" style="padding:0;">
+							<a href="<?php echo esc_url( $item['url'] ); ?>" style="color:inherit;text-decoration:none;display:flex;align-items:center;width:100%;padding:14px 24px;box-sizing:border-box;">
 								<span class="dashicons <?php echo esc_attr( $item['icon'] ); ?>"></span>
 								<span><?php echo esc_html( $item['label'] ); ?></span>
 							</a>

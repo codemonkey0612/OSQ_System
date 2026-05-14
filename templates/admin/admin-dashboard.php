@@ -36,7 +36,7 @@ $sidebar_key_map = array(
 	'analysis'  => 'analysis',
 	'settings'  => 'settings',
 );
-$active_sidebar_key = $sidebar_key_map[ $initial_tab ] ?? 'manage';
+$active_sidebar_key = $sidebar_key_map[ $initial_tab ] ?? '';
 ?>
 
 <div id="osq-admin-dashboard" class="osq-ui-container osq-admin-dashboard">
