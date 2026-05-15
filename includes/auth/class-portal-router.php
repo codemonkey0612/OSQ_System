@@ -55,15 +55,8 @@ class PortalRouter {
 			exit;
 		}
 
-		// Logged-in: route to the user's primary dashboard based on capabilities.
-		$primary = NavigationBuilder::get_primary_dashboard_url();
-		if ( $primary ) {
-			wp_safe_redirect( $primary );
-			exit;
-		}
-
-		// No OSQ access at all — bounce to home.
-		wp_safe_redirect( home_url( '/' ) );
+		// Logged-in: send to the unified dashboard.
+		wp_safe_redirect( home_url( '/' . UnifiedDashboardHandler::SLUG . '/' ) );
 		exit;
 	}
 }
