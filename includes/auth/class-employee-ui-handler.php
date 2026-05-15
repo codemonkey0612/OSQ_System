@@ -138,11 +138,10 @@ class EmployeeUiHandler {
 
 		if ( self::LOGIN_SLUG === $request ) {
 			$wp->set_query_var( 'osq_virtual_page', 'login' );
-		} elseif ( self::DASHBOARD_SLUG === $request ) {
-			$wp->set_query_var( 'osq_virtual_page', 'dashboard' );
 		} elseif ( self::QUESTIONNAIRE_SLUG === $request ) {
 			$wp->set_query_var( 'osq_virtual_page', 'questionnaire' );
 		}
+		// osq-dashboard is handled exclusively by UnifiedDashboardHandler.
 	}
 
 	/**
@@ -162,15 +161,6 @@ class EmployeeUiHandler {
 				exit;
 			}
 			$this->require_template( 'auth/login-form.php' );
-			exit;
-		}
-
-		if ( 'dashboard' === $virtual_page ) {
-			if ( ! is_user_logged_in() || ! $this->is_osq_employee( get_current_user_id() ) ) {
-				wp_safe_redirect( home_url( '/' . self::LOGIN_SLUG . '/?osq_error=unauthorized' ) );
-				exit;
-			}
-			$this->require_template( 'auth/employee-dashboard.php' );
 			exit;
 		}
 
@@ -240,7 +230,21 @@ class EmployeeUiHandler {
 			$this->redirect_back_with_error( 'invalid_credentials' );
 		}
 
-		if ( ! $this->is_osq_employee( $user_signon->ID ) ) {
+		// Accept any user with at least one OSQ capability (Phase 3a: unified login for all roles).
+		$osq_caps = array(
+			CapabilityMatrix::TAKE_TEST, CapabilityMatrix::VIEW_OWN_RESULTS,
+			CapabilityMatrix::VIEW_INDIVIDUAL_RESPONSES, CapabilityMatrix::SUPPORT_HIGH_STRESS,
+			CapabilityMatrix::MANAGE_EMPLOYEES, CapabilityMatrix::VIEW_GROUP_ANALYSIS,
+			CapabilityMatrix::SYSTEM_CONFIG, CapabilityMatrix::MANAGE_ALL_COMPANIES,
+		);
+		$has_osq_access = false;
+		foreach ( $osq_caps as $cap ) {
+			if ( user_can( $user_signon->ID, $cap ) ) {
+				$has_osq_access = true;
+				break;
+			}
+		}
+		if ( ! $has_osq_access ) {
 			wp_logout();
 			$this->redirect_back_with_error( 'invalid_role' );
 		}

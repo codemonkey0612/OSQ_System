@@ -15,8 +15,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 $companies  = CompaniesUiHandler::get_all_companies();
 $ajax_nonce = wp_create_nonce( 'osq_companies_ajax' );
 $saved      = isset( $_GET['saved'] );
-
-wp_head();
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
@@ -26,18 +24,29 @@ wp_head();
 <title><?php esc_html_e( 'Companies (wellanc)', 'osq-stress-check' ); ?> – <?php bloginfo( 'name' ); ?></title>
 <?php wp_head(); ?>
 <style>
-/* ── Layout ─────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f1f5f9; color: #1e293b; }
+/* ── Shared layout (mirrors unified-dashboard) ───────── */
+*, *::before, *::after { box-sizing: border-box; }
+body.osq-body { margin: 0; padding: 0; background: #f8fafc; font-family: 'Inter', system-ui, sans-serif; }
+.osq-admin-dashboard { display: flex; min-height: 100vh; width: 100vw; max-width: 100vw; background: #f8fafc; margin: 0; padding: 0; }
+.osq-admin-sidebar { width: 260px; background: #1e293b; color: white; display: flex; flex-direction: column; flex-shrink: 0; }
+.osq-sidebar-header { padding: 30px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.osq-logo { font-size: 22px; font-weight: 800; color: #38bdf8; letter-spacing: -1px; }
+.osq-admin-nav ul { list-style: none; padding: 20px 0; margin: 0; }
+.osq-admin-nav li { padding: 0; cursor: pointer; display: flex; align-items: center; color: #94a3b8; font-weight: 500; }
+.osq-admin-nav li a { color: inherit; text-decoration: none; display: flex; align-items: center; width: 100%; padding: 14px 24px; transition: all 0.2s; }
+.osq-admin-nav li .dashicons { margin-right: 12px; font-size: 20px; }
+.osq-admin-nav li a:hover { color: white; background: rgba(255,255,255,0.05); }
+.osq-admin-nav li.active a { color: white; background: #334155; border-left: 4px solid #38bdf8; }
+.osq-sidebar-footer { margin-top: auto; padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
 
-.osq-app { display: flex; min-height: 100vh; }
-.osq-main  { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+/* ── Main area ───────────────────────────────────────── */
+.osq-main { flex: 1; display: flex; flex-direction: column; overflow-x: hidden; }
 .osq-header {
 	background: #fff; border-bottom: 1px solid #e2e8f0;
 	padding: 0 32px; height: 64px; display: flex; align-items: center;
-	justify-content: space-between; position: sticky; top: 0; z-index: 10;
+	justify-content: space-between;
 }
-.osq-header h1 { font-size: 20px; font-weight: 600; color: #1e293b; }
+.osq-header h1 { font-size: 20px; font-weight: 600; color: #1e293b; margin: 0; }
 .osq-content { padding: 32px; flex: 1; }
 
 /* ── Notice ─────────────────────────────────────────── */
@@ -142,7 +151,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 </head>
 <body class="osq-body">
 
-<div class="osq-app">
+<div class="osq-admin-dashboard">
 	<?php NavigationBuilder::render_sidebar( 'companies' ); ?>
 
 	<div class="osq-main">

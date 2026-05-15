@@ -29,6 +29,8 @@ class NavigationBuilder {
 	public static function get_menu_items() {
 		$items = array();
 
+		$dash = home_url( '/' . UnifiedDashboardHandler::SLUG . '/' );
+
 		// 1. My stress check (employee feature).
 		if ( CapabilityMatrix::user_has( CapabilityMatrix::TAKE_TEST )
 			|| CapabilityMatrix::user_has( CapabilityMatrix::VIEW_OWN_RESULTS ) ) {
@@ -36,7 +38,7 @@ class NavigationBuilder {
 				'key'        => 'my_check',
 				'label'      => __( 'My Stress Check', 'osq-stress-check' ),
 				'icon'       => 'dashicons-clipboard',
-				'url'        => home_url( '/' . EmployeeUiHandler::DASHBOARD_SLUG . '/' ),
+				'url'        => $dash . '?panel=my-check',
 				'capability' => CapabilityMatrix::VIEW_OWN_RESULTS,
 			);
 		}
@@ -47,7 +49,7 @@ class NavigationBuilder {
 				'key'        => 'individual',
 				'label'      => __( 'Individual Responses', 'osq-stress-check' ),
 				'icon'       => 'dashicons-id-alt',
-				'url'        => home_url( '/' . OfficerUiHandler::DASHBOARD_SLUG . '/' ),
+				'url'        => $dash . '?panel=responses',
 				'capability' => CapabilityMatrix::VIEW_INDIVIDUAL_RESPONSES,
 			);
 		}
@@ -58,7 +60,7 @@ class NavigationBuilder {
 				'key'        => 'manage',
 				'label'      => __( 'Manage Employees', 'osq-stress-check' ),
 				'icon'       => 'dashicons-groups',
-				'url'        => home_url( '/' . AdminUiHandler::DASHBOARD_SLUG . '/?tab=employees' ),
+				'url'        => $dash . '?panel=employees',
 				'capability' => CapabilityMatrix::MANAGE_EMPLOYEES,
 			);
 		}
@@ -69,7 +71,7 @@ class NavigationBuilder {
 				'key'        => 'analysis',
 				'label'      => __( 'Group Analysis', 'osq-stress-check' ),
 				'icon'       => 'dashicons-chart-bar',
-				'url'        => home_url( '/' . AdminUiHandler::DASHBOARD_SLUG . '/?tab=analysis' ),
+				'url'        => $dash . '?panel=analysis',
 				'capability' => CapabilityMatrix::VIEW_GROUP_ANALYSIS,
 			);
 		}
@@ -80,7 +82,7 @@ class NavigationBuilder {
 				'key'        => 'settings',
 				'label'      => __( 'Settings', 'osq-stress-check' ),
 				'icon'       => 'dashicons-admin-settings',
-				'url'        => home_url( '/' . AdminUiHandler::DASHBOARD_SLUG . '/?tab=settings' ),
+				'url'        => $dash . '?panel=settings',
 				'capability' => CapabilityMatrix::SYSTEM_CONFIG,
 			);
 		}

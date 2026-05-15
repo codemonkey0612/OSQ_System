@@ -26,10 +26,24 @@ class CompaniesUiHandler {
 		add_filter( 'query_vars', array( $this, 'register_query_vars' ) );
 		add_action( 'parse_request', array( $this, 'parse_request' ) );
 		add_filter( 'template_include', array( $this, 'load_template' ), 99 );
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 		add_action( 'wp_loaded', array( $this, 'process_forms' ) );
 		add_action( 'wp_ajax_osq_companies_save', array( $this, 'ajax_save_company' ) );
 		add_action( 'wp_ajax_osq_companies_delete', array( $this, 'ajax_delete_company' ) );
 		add_action( 'wp_ajax_osq_companies_switch', array( $this, 'ajax_switch_company' ) );
+	}
+
+	public function enqueue_assets() {
+		if ( 'list' !== get_query_var( 'osq_companies_route' ) || ! is_user_logged_in() ) {
+			return;
+		}
+		wp_enqueue_style( 'dashicons' );
+		wp_enqueue_style( 'osq-admin-css', OSQ_PLUGIN_URL . 'assets/css/osq-admin.css', array(), OSQ_VERSION );
+		wp_enqueue_script( 'osq-admin-js', OSQ_PLUGIN_URL . 'assets/js/osq-admin.js', array( 'jquery' ), OSQ_VERSION, true );
+		wp_localize_script( 'osq-admin-js', 'osq_admin_vars', array(
+			'ajax_url' => admin_url( 'admin-ajax.php' ),
+			'nonce'    => wp_create_nonce( 'osq_admin_nonce' ),
+		) );
 	}
 
 	public function register_query_vars( $vars ) {

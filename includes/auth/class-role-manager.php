@@ -35,66 +35,81 @@ class RoleManager {
 	 * @return void
 	 */
 	public static function add_roles() {
-		// 1. Implementation Officer (Full health data access).
-		add_role( self::IMPLEMENTATION_OFFICER, __( 'OSQ Implementation Officer', 'osq-stress-check' ), array(
-			'read'                          => true,
-			'osq_view_individual_responses' => true,
-			'osq_view_pdfs'                 => true,
-			'osq_support_high_stress'       => true,
-		) );
+		$definitions = array(
+			self::IMPLEMENTATION_OFFICER => array(
+				'label' => __( 'OSQ Implementation Officer', 'osq-stress-check' ),
+				'caps'  => array(
+					'read'                          => true,
+					'osq_view_individual_responses' => true,
+					'osq_view_pdfs'                 => true,
+					'osq_support_high_stress'       => true,
+				),
+			),
+			self::GENERAL_ADMINISTRATOR  => array(
+				'label' => __( 'OSQ General Administrator', 'osq-stress-check' ),
+				'caps'  => array(
+					'read'                    => true,
+					'osq_manage_employees'    => true,
+					'osq_view_group_analysis' => true,
+					'osq_system_config'       => true,
+				),
+			),
+			self::EMPLOYEE               => array(
+				'label' => __( 'OSQ Employee', 'osq-stress-check' ),
+				'caps'  => array(
+					'read'                 => true,
+					'osq_take_test'        => true,
+					'osq_view_own_results' => true,
+					'osq_download_own_pdf' => true,
+				),
+			),
+			self::INDUSTRIAL_PHYSICIAN   => array(
+				'label' => __( 'OSQ Industrial Physician', 'osq-stress-check' ),
+				'caps'  => array(
+					'read'                          => true,
+					'osq_view_individual_responses' => true,
+					'osq_view_pdfs'                 => true,
+					'osq_support_high_stress'       => true,
+					'osq_industrial_physician_view' => true,
+				),
+			),
+			self::WELLANC_ADMIN          => array(
+				'label' => __( 'OSQ Wellanc Super-Admin', 'osq-stress-check' ),
+				'caps'  => array(
+					'read'                          => true,
+					'osq_take_test'                 => true,
+					'osq_view_own_results'          => true,
+					'osq_download_own_pdf'          => true,
+					'osq_view_individual_responses' => true,
+					'osq_view_pdfs'                 => true,
+					'osq_support_high_stress'       => true,
+					'osq_industrial_physician_view' => true,
+					'osq_manage_employees'          => true,
+					'osq_view_group_analysis'       => true,
+					'osq_system_config'             => true,
+					'osq_manage_all_companies'      => true,
+					'osq_cross_tenant_view'         => true,
+				),
+			),
+		);
 
-		// 2. General Administrator (Management only — no individual health data).
-		add_role( self::GENERAL_ADMINISTRATOR, __( 'OSQ General Administrator', 'osq-stress-check' ), array(
-			'read'                    => true,
-			'osq_manage_employees'    => true,
-			'osq_view_group_analysis' => true,
-			'osq_system_config'       => true,
-		) );
+		foreach ( $definitions as $role_name => $def ) {
+			// add_role() is a no-op when the role already exists, so always sync caps explicitly.
+			add_role( $role_name, $def['label'], $def['caps'] );
+			$role = get_role( $role_name );
+			if ( $role ) {
+				foreach ( $def['caps'] as $cap => $grant ) {
+					$role->add_cap( $cap, $grant );
+				}
+			}
+		}
 
-		// 3. Employee (Mapped to subscriber capabilities).
-		add_role( self::EMPLOYEE, __( 'OSQ Employee', 'osq-stress-check' ), array(
-			'read'                 => true,
-			'osq_take_test'        => true,
-			'osq_view_own_results' => true,
-			'osq_download_own_pdf' => true,
-		) );
-
-		// 4. Industrial Physician (Phase 3a) — same data access as Implementation Officer,
-		//    distinct identity so analytics can separate "supported by officer" vs "consulted by doctor".
-		add_role( self::INDUSTRIAL_PHYSICIAN, __( 'OSQ Industrial Physician', 'osq-stress-check' ), array(
-			'read'                          => true,
-			'osq_view_individual_responses' => true,
-			'osq_view_pdfs'                 => true,
-			'osq_support_high_stress'       => true,
-			'osq_industrial_physician_view' => true,
-		) );
-
-		// 5. Wellanc Super-Admin (Phase 3a) — manages all tenants. The ONLY role with cross-tenant access.
-		add_role( self::WELLANC_ADMIN, __( 'OSQ Wellanc Super-Admin', 'osq-stress-check' ), array(
-			'read'                          => true,
-			'osq_take_test'                 => true,
-			'osq_view_own_results'          => true,
-			'osq_download_own_pdf'          => true,
-			'osq_view_individual_responses' => true,
-			'osq_view_pdfs'                 => true,
-			'osq_support_high_stress'       => true,
-			'osq_industrial_physician_view' => true,
-			'osq_manage_employees'          => true,
-			'osq_view_group_analysis'       => true,
-			'osq_system_config'             => true,
-			'osq_manage_all_companies'      => true,
-			'osq_cross_tenant_view'         => true,
-		) );
-
-		// Sync capabilities to the standard administrator so they can manage the plugin
-		// (treating WP admin as a system-level super-user separate from OSQ tenants).
+		// Sync capabilities to the standard administrator.
 		$admin = get_role( 'administrator' );
 		if ( $admin ) {
-			$admin->add_cap( 'osq_manage_employees' );
-			$admin->add_cap( 'osq_view_group_analysis' );
-			$admin->add_cap( 'osq_system_config' );
-			$admin->add_cap( 'osq_manage_all_companies' );
-			$admin->add_cap( 'osq_cross_tenant_view' );
+			foreach ( array( 'osq_manage_employees', 'osq_view_group_analysis', 'osq_system_config', 'osq_manage_all_companies', 'osq_cross_tenant_view' ) as $cap ) {
+				$admin->add_cap( $cap );
+			}
 		}
 	}
 
