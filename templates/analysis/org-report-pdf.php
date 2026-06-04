@@ -152,6 +152,28 @@ $top3 = array_slice( $sorted, 0, 3 );
   <?php endif; ?>
   <?php endif; ?>
 
+  <!-- AI Advice per group (Phase 4) -->
+  <?php if ( ! empty( $org_advice ) && array_filter( $org_advice ) ) : ?>
+  <div class="osq-report-section">
+    <h2>組織別AIアドバイス</h2>
+    <p style="font-size:12px;color:#64748b;margin-bottom:16px;">以下のアドバイスは集計データに基づきAIが生成した参考情報です。特定の原因を断定するものではありません。</p>
+    <?php foreach ( $analysis_rows as $row ) :
+      $advice = $org_advice[ $row['group_label'] ] ?? null;
+      if ( ! $advice ) continue;
+    ?>
+    <div style="margin-bottom:20px;padding:16px;background:#f8fafc;border-left:4px solid #166534;border-radius:4px;">
+      <strong style="font-size:13px;color:#166534;display:block;margin-bottom:8px;">
+        <?php echo esc_html( $row['group_label'] ); ?>
+        <span style="font-weight:400;color:#64748b;font-size:12px;margin-left:8px;">
+          （高ストレス割合: <?php echo round( (float) $row['high_stress_ratio'], 1 ); ?>%）
+        </span>
+      </strong>
+      <p style="font-size:13px;line-height:1.8;color:#334155;margin:0;white-space:pre-wrap;"><?php echo esc_html( $advice ); ?></p>
+    </div>
+    <?php endforeach; ?>
+  </div>
+  <?php endif; ?>
+
   <!-- Disclaimer -->
   <div class="osq-disclaimer">
     <strong>【注意事項】</strong><br>

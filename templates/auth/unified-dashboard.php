@@ -633,6 +633,21 @@ $panel_titles = array(
 					<a href="#" id="osq-export-analysis-csv" class="osq-button osq-button--secondary"><?php esc_html_e( 'CSVダウンロード', 'osq-stress-check' ); ?></a>
 						<button type="button" id="osq-download-org-report" class="osq-button osq-button--secondary" style="background:#166534;color:#fff;border-color:#166534;"><?php esc_html_e( '組織分析レポートPDF出力', 'osq-stress-check' ); ?></button>
 				</div>
+				<?php if ( $can_analysis && $enable_group_analysis ) : ?>
+				<div id="osq-org-ai-section" style="margin-top:32px;">
+					<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+						<h3 style="margin:0;font-size:16px;color:#1e293b;"><?php esc_html_e( '組織別AIアドバイス', 'osq-stress-check' ); ?></h3>
+						<span style="font-size:12px;color:#64748b;background:#f1f5f9;padding:2px 8px;border-radius:10px;">
+							<?php esc_html_e( 'AIが自動生成 / バックグラウンド処理', 'osq-stress-check' ); ?>
+						</span>
+					</div>
+					<div id="osq-org-ai-loading" style="display:none;color:#64748b;font-size:13px;padding:12px;background:#f8fafc;border-radius:6px;margin-bottom:16px;">
+						<span class="dashicons dashicons-update osq-spin" style="margin-right:6px;"></span>
+						<?php esc_html_e( 'AIアドバイスを生成中... しばらくお待ちください。', 'osq-stress-check' ); ?>
+					</div>
+					<div id="osq-org-ai-cards"></div>
+				</div>
+				<?php endif; ?>
 				<div class="osq-analysis-section">
 					<h4><?php esc_html_e( 'グループ別受検率', 'osq-stress-check' ); ?></h4>
 					<div class="osq-table-responsive">
@@ -664,10 +679,14 @@ $panel_titles = array(
 			$session_timeout   = $osq_settings['session_timeout'] ?? 30;
 			$company_id        = \OSQ\Database\DbManager::current_company_id();
 			$company_row       = $wpdb->get_row( $wpdb->prepare(
-				"SELECT min_group_size FROM {$wpdb->prefix}osq_companies WHERE company_id = %d",
+				"SELECT min_group_size, physician_name, contact_name, contact_phone, contact_email FROM {$wpdb->prefix}osq_companies WHERE company_id = %d",
 				$company_id
 			) );
-			$current_min_group = $company_row ? (int) $company_row->min_group_size : 5;
+			$current_min_group    = $company_row ? (int) $company_row->min_group_size : 5;
+			$current_physician    = $company_row->physician_name ?? '';
+			$current_contact_name = $company_row->contact_name ?? '';
+			$current_contact_phone = $company_row->contact_phone ?? '';
+			$current_contact_email = $company_row->contact_email ?? '';
 			?>
 			<section id="ud-panel-settings" class="ud-panel <?php echo 'settings' === $initial_panel ? 'active' : ''; ?>">
 				<form id="osq-settings-form" class="osq-admin-form">
@@ -697,6 +716,56 @@ $panel_titles = array(
 							<span class="osq-toggle-slider"></span>
 							<span class="osq-toggle-status"><?php echo $enable_group_analysis ? 'ON' : 'OFF'; ?></span>
 						</label>
+					</div>
+					<div class="osq-form-row">
+						<label><?php esc_html_e( '担当産業医名', 'osq-stress-check' ); ?></label>
+						<input type="text" name="physician_name" value="<?php echo esc_attr( $current_physician ); ?>" class="osq-input" placeholder="例：山田 花子 医師">
+					</div>
+					<hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0;">
+					<h4 style="margin:0 0 16px;color:#334155;font-size:14px;"><?php esc_html_e( '面接指導 連絡先（高ストレス者に表示）', 'osq-stress-check' ); ?></h4>
+					<div class="osq-form-row">
+						<label><?php esc_html_e( '担当者名', 'osq-stress-check' ); ?></label>
+						<input type="text" name="contact_name" value="<?php echo esc_attr( $current_contact_name ); ?>" class="osq-input" placeholder="例：人事部 鈴木 一郎">
+					</div>
+					<div class="osq-form-row">
+						<label><?php esc_html_e( '電話番号', 'osq-stress-check' ); ?></label>
+						<input type="text" name="contact_phone" value="<?php echo esc_attr( $current_contact_phone ); ?>" class="osq-input" placeholder="例：03-1234-5678">
+					</div>
+					<div class="osq-form-row">
+						<label><?php esc_html_e( 'メールアドレス', 'osq-stress-check' ); ?></label>
+						<input type="email" name="contact_email" value="<?php echo esc_attr( $current_contact_email ); ?>" class="osq-input" placeholder="例：jinji@example.co.jp">
+					</div>
+					<hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0;">
+					<h4 style="margin:0 0 16px;color:#334155;font-size:14px;"><?php esc_html_e( '労働基準監督署 報告用データ', 'osq-stress-check' ); ?></h4>
+					<div id="osq-labor-report-panel" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:20px;margin-bottom:24px;">
+						<p style="color:#64748b;font-size:13px;margin:0 0 16px;"><?php esc_html_e( '以下のデータは報告書作成用の参照値です（自動集計）。', 'osq-stress-check' ); ?></p>
+						<table style="width:100%;border-collapse:collapse;font-size:14px;">
+							<tr style="border-bottom:1px solid #e2e8f0;">
+								<td style="padding:10px 8px;color:#64748b;width:55%;"><?php esc_html_e( '実施開始日', 'osq-stress-check' ); ?></td>
+								<td style="padding:10px 8px;font-weight:600;" id="lr-start-date">—</td>
+							</tr>
+							<tr style="border-bottom:1px solid #e2e8f0;">
+								<td style="padding:10px 8px;color:#64748b;"><?php esc_html_e( '在籍数', 'osq-stress-check' ); ?></td>
+								<td style="padding:10px 8px;font-weight:600;" id="lr-total-employees">—</td>
+							</tr>
+							<tr style="border-bottom:1px solid #e2e8f0;">
+								<td style="padding:10px 8px;color:#64748b;"><?php esc_html_e( '受検者数', 'osq-stress-check' ); ?></td>
+								<td style="padding:10px 8px;font-weight:600;" id="lr-respondents">—</td>
+							</tr>
+							<tr style="border-bottom:1px solid #e2e8f0;">
+								<td style="padding:10px 8px;color:#64748b;"><?php esc_html_e( '高ストレス該当者数', 'osq-stress-check' ); ?></td>
+								<td style="padding:10px 8px;font-weight:600;color:#dc2626;" id="lr-high-stress">—</td>
+							</tr>
+							<tr style="border-bottom:1px solid #e2e8f0;">
+								<td style="padding:10px 8px;color:#64748b;"><?php esc_html_e( '医師による面接指導実施者数', 'osq-stress-check' ); ?></td>
+								<td style="padding:10px 8px;font-weight:600;" id="lr-interviews">—</td>
+							</tr>
+							<tr>
+								<td style="padding:10px 8px;color:#64748b;"><?php esc_html_e( '担当産業医名', 'osq-stress-check' ); ?></td>
+								<td style="padding:10px 8px;font-weight:600;" id="lr-physician">—</td>
+							</tr>
+						</table>
+						<button type="button" id="osq-load-labor-report" class="osq-button" style="margin-top:16px;font-size:13px;"><?php esc_html_e( '最新データを取得', 'osq-stress-check' ); ?></button>
 					</div>
 					<div class="osq-form-actions">
 						<button type="submit" class="osq-button osq-button--primary"><?php esc_html_e( '設定を保存', 'osq-stress-check' ); ?></button>
@@ -1118,6 +1187,7 @@ jQuery(document).ready(function($) {
 		var panelId = $(this).data('panel');
 		if (!panelId) return;
 		switchPanel(panelId);
+		if (panelId === 'settings') { $('#osq-load-labor-report').trigger('click'); }
 	});
 
 	// ── Mobile hamburger ─────────────────────────────────────────────────────
@@ -1416,7 +1486,11 @@ jQuery(document).ready(function($) {
 				language: $form.find('select[name="language"]').val(),
 				session_timeout: $form.find('input[name="session_timeout"]').val(),
 				min_group_size: $form.find('input[name="min_group_size"]').val(),
-				enable_group_analysis: $form.find('input[name="enable_group_analysis"]').is(':checked') ? 1 : 0
+				enable_group_analysis: $form.find('input[name="enable_group_analysis"]').is(':checked') ? 1 : 0,
+				physician_name: $form.find('input[name="physician_name"]').val(),
+				contact_name:   $form.find('input[name="contact_name"]').val(),
+				contact_phone:  $form.find('input[name="contact_phone"]').val(),
+				contact_email:  $form.find('input[name="contact_email"]').val()
 			},
 			success: function(response) {
 				if (response.success) {
@@ -1457,6 +1531,169 @@ jQuery(document).ready(function($) {
 	<?php endif; ?>
 
 });
+</script>
+
+<script>
+/* ── Org AI Advice ─────────────────────────────────────────── */
+(function($) {
+	var orgAiPollTimer = null;
+	var currentOrgLevel = '';
+
+	function stopOrgAiPoll() {
+		if (orgAiPollTimer) { clearInterval(orgAiPollTimer); orgAiPollTimer = null; }
+	}
+
+	function renderOrgAiCards(statusMap) {
+		var $container = $('#osq-org-ai-cards');
+		$container.empty();
+
+		var allDone = true;
+		$.each(statusMap, function(orgValue, info) {
+			if (info.status !== 'done' && info.status !== 'failed') allDone = false;
+			var cardHtml = '<div class="osq-org-ai-card" style="border:1px solid #e2e8f0;border-radius:8px;padding:20px;margin-bottom:16px;background:#fff;">';
+			cardHtml += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">';
+			cardHtml += '<strong style="font-size:14px;color:#1e293b;">' + $('<div>').text(orgValue).html() + '</strong>';
+			cardHtml += '<div style="display:flex;gap:8px;">';
+			if (info.status === 'done') {
+				cardHtml += '<button class="osq-button osq-btn-edit-advice" data-org="' + $('<div>').text(orgValue).html() + '" style="font-size:12px;padding:4px 10px;">編集</button>';
+				cardHtml += '<button class="osq-button osq-btn-regen-advice" data-org="' + $('<div>').text(orgValue).html() + '" style="font-size:12px;padding:4px 10px;">再生成</button>';
+			}
+			cardHtml += '</div></div>';
+			if (info.status === 'done') {
+				cardHtml += '<div class="osq-advice-text" style="font-size:13px;line-height:1.8;color:#334155;white-space:pre-wrap;">' + $('<div>').text(info.advice_text).html() + '</div>';
+				cardHtml += '<div class="osq-advice-edit" style="display:none;">';
+				cardHtml += '<textarea class="osq-advice-textarea" style="width:100%;min-height:120px;font-size:13px;line-height:1.7;padding:10px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box;">' + $('<div>').text(info.advice_text).html() + '</textarea>';
+				cardHtml += '<div style="margin-top:8px;display:flex;gap:8px;"><button class="osq-button osq-button--primary osq-btn-save-advice" data-org="' + $('<div>').text(orgValue).html() + '" style="font-size:12px;">保存</button><button class="osq-button osq-btn-cancel-edit" style="font-size:12px;">キャンセル</button></div>';
+				cardHtml += '</div>';
+				if (info.is_edited) {
+					cardHtml += '<p style="font-size:11px;color:#94a3b8;margin:8px 0 0;">✎ 手動編集済み</p>';
+				}
+			} else if (info.status === 'pending' || info.status === 'processing') {
+				cardHtml += '<p style="color:#64748b;font-size:13px;"><span class="dashicons dashicons-update osq-spin"></span> 生成中...</p>';
+			} else if (info.status === 'failed') {
+				cardHtml += '<p style="color:#dc2626;font-size:13px;">生成に失敗しました。再生成をお試しください。</p>';
+			}
+			cardHtml += '</div>';
+			$container.append(cardHtml);
+		});
+
+		if (allDone) {
+			stopOrgAiPoll();
+			$('#osq-org-ai-loading').hide();
+		}
+	}
+
+	function pollOrgAiStatus() {
+		if (!currentOrgLevel) return;
+		$.get(osq_admin_vars.ajax_url, {
+			action: 'osq_admin_get_org_advice_status',
+			nonce: osq_admin_vars.nonce,
+			org_level: currentOrgLevel
+		}).done(function(res) {
+			if (res.success) renderOrgAiCards(res.data);
+		});
+	}
+
+	window.triggerOrgAiPregeneration = function triggerOrgAiPregeneration(orgLevel) {
+		currentOrgLevel = orgLevel;
+		stopOrgAiPoll();
+		$('#osq-org-ai-loading').show();
+		$('#osq-org-ai-cards').empty();
+
+		$.post(osq_admin_vars.ajax_url, {
+			action: 'osq_admin_pregenerate_org_advice',
+			nonce: osq_admin_vars.nonce,
+			org_level: orgLevel
+		}).done(function(res) {
+			if (res.success) {
+				pollOrgAiStatus();
+				orgAiPollTimer = setInterval(pollOrgAiStatus, 3000);
+			}
+		});
+	}
+
+	// Trigger on org level change or analysis refresh.
+	$(document).on('change', '#osq-analysis-org-level', function() {
+		triggerOrgAiPregeneration($(this).val());
+	});
+	$(document).on('click', '#osq-analysis-refresh', function() {
+		triggerOrgAiPregeneration($('#osq-analysis-org-level').val() || 'organization_1');
+	});
+
+	// Regenerate one group.
+	$(document).on('click', '.osq-btn-regen-advice', function() {
+		var orgValue = $(this).data('org');
+		$(this).prop('disabled', true).text('再生成中...');
+		$.post(osq_admin_vars.ajax_url, {
+			action: 'osq_admin_regenerate_org_advice',
+			nonce: osq_admin_vars.nonce,
+			org_level: currentOrgLevel,
+			org_value: orgValue
+		}).done(function() {
+			if (!orgAiPollTimer) orgAiPollTimer = setInterval(pollOrgAiStatus, 3000);
+			$('#osq-org-ai-loading').show();
+		});
+	});
+
+	// Toggle inline edit.
+	$(document).on('click', '.osq-btn-edit-advice', function() {
+		var $card = $(this).closest('.osq-org-ai-card');
+		$card.find('.osq-advice-text').hide();
+		$card.find('.osq-advice-edit').show();
+	});
+
+	$(document).on('click', '.osq-btn-cancel-edit', function() {
+		var $card = $(this).closest('.osq-org-ai-card');
+		$card.find('.osq-advice-text').show();
+		$card.find('.osq-advice-edit').hide();
+	});
+
+	// Save inline edit.
+	$(document).on('click', '.osq-btn-save-advice', function() {
+		var $btn = $(this);
+		var orgValue = $btn.data('org');
+		var $card = $btn.closest('.osq-org-ai-card');
+		var newText = $card.find('.osq-advice-textarea').val();
+		$btn.prop('disabled', true).text('保存中...');
+		$.post(osq_admin_vars.ajax_url, {
+			action: 'osq_admin_save_org_advice',
+			nonce: osq_admin_vars.nonce,
+			org_level: currentOrgLevel,
+			org_value: orgValue,
+			advice_text: newText
+		}).done(function(res) {
+			if (res.success) {
+				$card.find('.osq-advice-text').text(newText).show();
+				$card.find('.osq-advice-edit').hide();
+			}
+			$btn.prop('disabled', false).text('保存');
+		});
+	});
+
+	// Labor report loader.
+	$(document).on('click', '#osq-load-labor-report', function() {
+		var $btn = $(this).prop('disabled', true).text('取得中...');
+		$.get(osq_admin_vars.ajax_url, {
+			action: 'osq_admin_get_labor_report',
+			nonce: osq_admin_vars.nonce
+		}).done(function(res) {
+			if (res.success) {
+				var d = res.data;
+				$('#lr-start-date').text(d.start_date);
+				$('#lr-total-employees').text(d.total_employees + ' 名');
+				$('#lr-respondents').text(d.respondents + ' 名');
+				$('#lr-high-stress').text(d.high_stress + ' 名');
+				$('#lr-interviews').text(d.interviews + ' 名');
+				$('#lr-physician').text(d.physician_name);
+			}
+		}).always(function() { $btn.prop('disabled', false).text('最新データを取得'); });
+	});
+
+	/* Spin animation */
+	if (!$('#osq-spin-style').length) {
+		$('head').append('<style id="osq-spin-style">@keyframes osq-spin{to{transform:rotate(360deg)}}.osq-spin{display:inline-block;animation:osq-spin 1s linear infinite;}</style>');
+	}
+})(jQuery);
 </script>
 
 <?php wp_footer(); ?>

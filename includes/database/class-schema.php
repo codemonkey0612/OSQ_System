@@ -24,7 +24,7 @@ class Schema {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.6.2';
+	const VERSION = '1.6.3';
 
 	/**
 	 * Table names (without prefix).
@@ -238,6 +238,10 @@ class Schema {
 			org_label_5 varchar(100) DEFAULT NULL,
 			min_group_size tinyint unsigned NOT NULL DEFAULT 5,
 			excluded_orgs text DEFAULT NULL,
+			physician_name varchar(255) DEFAULT NULL,
+			contact_name varchar(255) DEFAULT NULL,
+			contact_phone varchar(50) DEFAULT NULL,
+			contact_email varchar(255) DEFAULT NULL,
 			is_active tinyint(1) NOT NULL DEFAULT 1,
 			is_demo tinyint(1) NOT NULL DEFAULT 0,
 			created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,

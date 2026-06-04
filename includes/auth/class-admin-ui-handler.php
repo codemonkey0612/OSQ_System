@@ -59,6 +59,11 @@ class AdminUiHandler {
 		add_action( 'wp_ajax_osq_admin_save_settings', array( $this, 'ajax_save_settings' ) );
 		add_action( 'wp_ajax_osq_admin_reset_all_data', array( $this, 'ajax_reset_all_data' ) );
 		add_action( 'wp_ajax_osq_admin_delete_employee', array( $this, 'ajax_delete_employee' ) );
+		add_action( 'wp_ajax_osq_admin_pregenerate_org_advice',   array( $this, 'ajax_pregenerate_org_advice' ) );
+		add_action( 'wp_ajax_osq_admin_get_org_advice_status',    array( $this, 'ajax_get_org_advice_status' ) );
+		add_action( 'wp_ajax_osq_admin_regenerate_org_advice',    array( $this, 'ajax_regenerate_org_advice' ) );
+		add_action( 'wp_ajax_osq_admin_save_org_advice',          array( $this, 'ajax_save_org_advice' ) );
+		add_action( 'wp_ajax_osq_admin_get_labor_report',         array( $this, 'ajax_get_labor_report' ) );
 		add_action( 'wp_ajax_osq_compile_mo', array( $this, 'ajax_compile_mo' ) );
 		add_action( 'wp_ajax_osq_test_openai_connection', array( $this, 'ajax_test_openai_connection' ) );
 
@@ -418,6 +423,14 @@ class AdminUiHandler {
 		$report_date = date_i18n( 'Y年m月d日' );
 		$filename    = sprintf( 'osq-org-report-%s-%s', $org_level, gmdate( 'Ymd' ) );
 
+		// Fetch cached AI advice for each group (Phase 4).
+		$org_generator = new \OSQ\AI\OrgAdviceGenerator();
+		$org_advice    = array(); // keyed by group_label => advice_text|null
+		foreach ( $analysis_rows as $row ) {
+			$cache = $org_generator->get_cache_row( $company_id, $org_level, $row['group_label'] );
+			$org_advice[ $row['group_label'] ] = ( $cache && $cache->status === 'done' ) ? $cache->advice_text : null;
+		}
+
 		// Render template to string.
 		ob_start();
 		include OSQ_PLUGIN_DIR . 'templates/analysis/org-report-pdf.php';
@@ -537,17 +550,33 @@ class AdminUiHandler {
 			$settings['enable_group_analysis'] = false;
 		}
 
+		global $wpdb;
+		$company_id     = \OSQ\Database\DbManager::current_company_id();
+		$company_update = array();
+
 		// Save min_group_size to osq_companies for the current tenant.
 		if ( isset( $_POST['min_group_size'] ) ) {
-			$min_group = max( 1, min( 100, absint( $_POST['min_group_size'] ) ) );
-			global $wpdb;
+			$company_update['min_group_size'] = max( 1, min( 100, absint( $_POST['min_group_size'] ) ) );
+			wp_cache_delete( 'osq_org_labels_' . $company_id );
+		}
+
+		// Save physician name and HR contact fields.
+		$text_company_fields = array( 'physician_name', 'contact_name', 'contact_phone' );
+		foreach ( $text_company_fields as $field ) {
+			if ( isset( $_POST[ $field ] ) ) {
+				$company_update[ $field ] = sanitize_text_field( wp_unslash( $_POST[ $field ] ) );
+			}
+		}
+		if ( isset( $_POST['contact_email'] ) ) {
+			$company_update['contact_email'] = sanitize_email( wp_unslash( $_POST['contact_email'] ) );
+		}
+
+		if ( ! empty( $company_update ) ) {
 			$wpdb->update(
 				$wpdb->prefix . \OSQ\Database\Schema::COMPANIES,
-				array( 'min_group_size' => $min_group ),
-				array( 'company_id'    => \OSQ\Database\DbManager::current_company_id() )
+				$company_update,
+				array( 'company_id' => $company_id )
 			);
-			// Flush the OrgLabelService cache so the new threshold is reflected immediately.
-			wp_cache_delete( 'osq_org_labels_' . \OSQ\Database\DbManager::current_company_id() );
 		}
 
 		// Save settings — update_option returns false if value is unchanged,
@@ -1166,6 +1195,135 @@ class AdminUiHandler {
 		} else {
 			wp_die( esc_html__( 'Template not found.', 'osq-stress-check' ) );
 		}
+	}
+
+	/**
+	 * AJAX: Enqueue org AI advice generation for all groups at a given level.
+	 */
+	public function ajax_pregenerate_org_advice() {
+		check_ajax_referer( 'osq_admin_nonce', 'nonce' );
+		if ( ! $this->is_osq_admin( get_current_user_id() ) ) {
+			wp_send_json_error( 'unauthorized' );
+		}
+
+		$org_level  = sanitize_key( wp_unslash( $_POST['org_level'] ?? 'organization_1' ) );
+		$company_id = \OSQ\Database\DbManager::current_company_id();
+		$generator  = new \OSQ\AI\OrgAdviceGenerator();
+		$count      = $generator->enqueue_all( $company_id, $org_level );
+
+		wp_send_json_success( array( 'enqueued' => $count ) );
+	}
+
+	/**
+	 * AJAX: Poll status of all org advice for a given level (used by JS polling).
+	 */
+	public function ajax_get_org_advice_status() {
+		check_ajax_referer( 'osq_admin_nonce', 'nonce' );
+		if ( ! $this->is_osq_admin( get_current_user_id() ) ) {
+			wp_send_json_error( 'unauthorized' );
+		}
+
+		$org_level  = sanitize_key( wp_unslash( $_GET['org_level'] ?? 'organization_1' ) );
+		$company_id = \OSQ\Database\DbManager::current_company_id();
+		$generator  = new \OSQ\AI\OrgAdviceGenerator();
+		$status_map = $generator->get_all_status( $company_id, $org_level );
+
+		wp_send_json_success( $status_map );
+	}
+
+	/**
+	 * AJAX: Regenerate org advice for one group (ignores is_edited flag).
+	 */
+	public function ajax_regenerate_org_advice() {
+		check_ajax_referer( 'osq_admin_nonce', 'nonce' );
+		if ( ! $this->is_osq_admin( get_current_user_id() ) ) {
+			wp_send_json_error( 'unauthorized' );
+		}
+
+		$org_level  = sanitize_key( wp_unslash( $_POST['org_level'] ?? '' ) );
+		$org_value  = sanitize_text_field( wp_unslash( $_POST['org_value'] ?? '' ) );
+		$company_id = \OSQ\Database\DbManager::current_company_id();
+
+		if ( ! $org_level || ! $org_value ) {
+			wp_send_json_error( 'missing_params' );
+		}
+
+		$generator = new \OSQ\AI\OrgAdviceGenerator();
+		$generator->regenerate( $company_id, $org_level, $org_value );
+
+		wp_send_json_success( array( 'status' => 'pending' ) );
+	}
+
+	/**
+	 * AJAX: Save inline-edited org advice text (sets is_edited=1).
+	 */
+	public function ajax_save_org_advice() {
+		check_ajax_referer( 'osq_admin_nonce', 'nonce' );
+		if ( ! $this->is_osq_admin( get_current_user_id() ) ) {
+			wp_send_json_error( 'unauthorized' );
+		}
+
+		$org_level  = sanitize_key( wp_unslash( $_POST['org_level'] ?? '' ) );
+		$org_value  = sanitize_text_field( wp_unslash( $_POST['org_value'] ?? '' ) );
+		$advice     = sanitize_textarea_field( wp_unslash( $_POST['advice_text'] ?? '' ) );
+		$company_id = \OSQ\Database\DbManager::current_company_id();
+
+		if ( ! $org_level || ! $org_value ) {
+			wp_send_json_error( 'missing_params' );
+		}
+
+		$generator = new \OSQ\AI\OrgAdviceGenerator();
+		$ok        = $generator->save_edited( $company_id, $org_level, $org_value, $advice );
+
+		$ok ? wp_send_json_success() : wp_send_json_error( 'save_failed' );
+	}
+
+	/**
+	 * AJAX: Return labor inspection report data for the current company.
+	 */
+	public function ajax_get_labor_report() {
+		check_ajax_referer( 'osq_admin_nonce', 'nonce' );
+		if ( ! $this->is_osq_admin( get_current_user_id() ) ) {
+			wp_send_json_error( 'unauthorized' );
+		}
+
+		global $wpdb;
+		$company_id  = \OSQ\Database\DbManager::current_company_id();
+		$emp_table   = $wpdb->prefix . \OSQ\Database\Schema::EMPLOYEES;
+		$res_table   = $wpdb->prefix . \OSQ\Database\Schema::RESPONSES;
+		$fup_table   = $wpdb->prefix . \OSQ\Database\Schema::FOLLOW_UP_TRACKING;
+		$comp_table  = $wpdb->prefix . \OSQ\Database\Schema::COMPANIES;
+
+		$start_date     = $wpdb->get_var( $wpdb->prepare(
+			"SELECT MIN(created_at) FROM {$emp_table} WHERE company_id = %d", $company_id
+		) );
+		$total_employees = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT COUNT(*) FROM {$emp_table} WHERE company_id = %d", $company_id
+		) );
+		$respondents    = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT COUNT(*) FROM {$res_table} WHERE company_id = %d AND is_complete = 1", $company_id
+		) );
+		$high_stress    = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT COUNT(*) FROM {$res_table}
+			 WHERE company_id = %d AND is_complete = 1
+			   AND (is_high_stress_method1 = 1 OR is_high_stress_method2 = 1)", $company_id
+		) );
+		$interviews     = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT COUNT(*) FROM {$fup_table}
+			 WHERE company_id = %d AND status = 'completed'", $company_id
+		) );
+		$company_row    = $wpdb->get_row( $wpdb->prepare(
+			"SELECT physician_name FROM {$comp_table} WHERE company_id = %d", $company_id
+		) );
+
+		wp_send_json_success( array(
+			'start_date'       => $start_date ? date_i18n( 'Y年m月d日', strtotime( $start_date ) ) : '—',
+			'total_employees'  => $total_employees,
+			'respondents'      => $respondents,
+			'high_stress'      => $high_stress,
+			'interviews'       => $interviews,
+			'physician_name'   => $company_row->physician_name ?? '—',
+		) );
 	}
 
 	/**

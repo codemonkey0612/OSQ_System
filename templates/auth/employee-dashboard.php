@@ -21,6 +21,15 @@ if ( $response ) {
 
 $must_change_password = get_user_meta( $user_id, 'osq_must_change_password', true );
 
+// Fetch HR contact info from the employee's company (shown to high-stress employees).
+$hr_contact = null;
+if ( isset( $employee->company_id ) && $employee->company_id ) {
+	$hr_contact = $wpdb->get_row( $wpdb->prepare(
+		"SELECT contact_name, contact_phone, contact_email FROM {$wpdb->prefix}osq_companies WHERE company_id = %d",
+		(int) $employee->company_id
+	) );
+}
+
 // Define dynamic advice based on stress levels
 $advice_title = '';
 $advice_text  = '';
@@ -336,6 +345,38 @@ if ( $response && $response->is_complete && $employee ) {
 								<?php endif; ?>
 							</div>
 						</div>
+
+						<?php if ( $is_high_stress && $hr_contact && ( $hr_contact->contact_name || $hr_contact->contact_phone || $hr_contact->contact_email ) ) : ?>
+						<div style="margin-top:24px;padding:20px;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;border-left:4px solid #ea580c;">
+							<p style="margin:0 0 14px;font-size:14px;font-weight:600;color:#9a3412;">
+								<span class="dashicons dashicons-phone" style="margin-right:6px;"></span>
+								<?php esc_html_e( '医師による面接指導を希望する場合は、下記まで直接ご連絡ください。', 'osq-stress-check' ); ?>
+							</p>
+							<table style="font-size:13px;line-height:2;color:#431407;">
+								<?php if ( $hr_contact->contact_name ) : ?>
+								<tr>
+									<td style="padding-right:16px;color:#9a3412;font-weight:500;"><?php esc_html_e( '人事部（総務部）担当', 'osq-stress-check' ); ?></td>
+									<td><?php echo esc_html( $hr_contact->contact_name ); ?></td>
+								</tr>
+								<?php endif; ?>
+								<?php if ( $hr_contact->contact_phone ) : ?>
+								<tr>
+									<td style="padding-right:16px;color:#9a3412;font-weight:500;"><?php esc_html_e( '電話番号', 'osq-stress-check' ); ?></td>
+									<td><?php echo esc_html( $hr_contact->contact_phone ); ?></td>
+								</tr>
+								<?php endif; ?>
+								<?php if ( $hr_contact->contact_email ) : ?>
+								<tr>
+									<td style="padding-right:16px;color:#9a3412;font-weight:500;"><?php esc_html_e( 'メールアドレス', 'osq-stress-check' ); ?></td>
+									<td><a href="mailto:<?php echo esc_attr( $hr_contact->contact_email ); ?>" style="color:#ea580c;"><?php echo esc_html( $hr_contact->contact_email ); ?></a></td>
+								</tr>
+								<?php endif; ?>
+							</table>
+							<p style="margin:12px 0 0;font-size:12px;color:#9a3412;opacity:0.8;">
+								<?php esc_html_e( '※ すぐに連絡できない状況の場合、この画面をスクリーンショット等で保存し、後ほどご連絡ください。', 'osq-stress-check' ); ?>
+							</p>
+						</div>
+						<?php endif; ?>
 
 						<div class="osq-download-box">
 							<p><?php esc_html_e( '詳細な結果をPDFでダウンロードできます。', 'osq-stress-check' ); ?></p>
