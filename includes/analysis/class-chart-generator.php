@@ -44,7 +44,7 @@ class ChartGenerator {
 	public function get_bar_chart_data( $org_level = 'organization_1' ) {
 		global $wpdb;
 
-		$allowed = array( 'organization_1', 'organization_2', 'organization_3' );
+		$allowed = array( 'organization_1', 'organization_2', 'organization_3', 'organization_4', 'organization_5' );
 		if ( ! in_array( $org_level, $allowed, true ) ) {
 			$org_level = 'organization_1';
 		}

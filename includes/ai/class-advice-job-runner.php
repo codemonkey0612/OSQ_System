@@ -26,12 +26,13 @@ class AdviceJobRunner {
 	const BATCH_SIZE = 5;
 
 	/**
-	 * Register WP-Cron hook.
+	 * Register WP-Cron hooks for both individual and org advice jobs.
 	 *
 	 * @return void
 	 */
 	public function init() {
-		add_action( 'osq_process_ai_jobs', array( $this, 'run' ) );
+		add_action( 'osq_process_ai_jobs',     array( $this, 'run' ) );
+		add_action( 'osq_process_org_ai_jobs', array( $this, 'run_org' ) );
 	}
 
 	/**
@@ -110,6 +111,59 @@ class AdviceJobRunner {
 
 		if ( $remaining > 0 && ! wp_next_scheduled( 'osq_process_ai_jobs' ) ) {
 			wp_schedule_single_event( time() + 30, 'osq_process_ai_jobs' );
+		}
+	}
+
+	/**
+	 * Process pending org-level AI advice jobs from osq_ai_org_advice_cache.
+	 *
+	 * @return void
+	 */
+	public function run_org() {
+		global $wpdb;
+		$table = $wpdb->prefix . \OSQ\Database\Schema::AI_ORG_ADVICE_CACHE;
+
+		$jobs = $wpdb->get_results( $wpdb->prepare(
+			"SELECT * FROM {$table} WHERE status = 'pending' ORDER BY updated_at ASC LIMIT %d",
+			self::BATCH_SIZE
+		) );
+
+		if ( empty( $jobs ) ) {
+			return;
+		}
+
+		$generator = new OrgAdviceGenerator();
+
+		foreach ( $jobs as $job ) {
+			// Mark as processing.
+			$wpdb->update(
+				$table,
+				array( 'status' => 'processing' ),
+				array( 'cache_id' => $job->cache_id )
+			);
+
+			$result = $generator->generate( $job->company_id, $job->org_level, $job->org_value );
+
+			if ( is_wp_error( $result ) ) {
+				$wpdb->update(
+					$table,
+					array(
+						'status'        => 'failed',
+						'error_message' => $result->get_error_message(),
+					),
+					array( 'cache_id' => $job->cache_id )
+				);
+			}
+			// On success, generate() updates the row itself via cache_result().
+		}
+
+		// If more pending org jobs remain, reschedule.
+		$remaining = (int) $wpdb->get_var(
+			"SELECT COUNT(*) FROM {$table} WHERE status = 'pending'"
+		);
+
+		if ( $remaining > 0 && ! wp_next_scheduled( 'osq_process_org_ai_jobs' ) ) {
+			wp_schedule_single_event( time() + 30, 'osq_process_org_ai_jobs' );
 		}
 	}
 }

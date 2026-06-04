@@ -28,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 		<div class="osq-login-header">
 			<h1><?php esc_html_e( 'OSQ Stress Check', 'osq-stress-check' ); ?></h1>
-			<p class="osq-subtitle"><?php esc_html_e( 'Management Portal', 'osq-stress-check' ); ?></p>
+			<p class="osq-subtitle"><?php esc_html_e( '管理者ポータル', 'osq-stress-check' ); ?></p>
 		</div>
 
 		<?php
@@ -40,7 +40,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<div class="osq-alert osq-alert--error osq-lockout-alert">
 				<div class="osq-lockout-icon">&#128274;</div>
 				<p><?php echo esc_html( \OSQ\Auth\LoginManager::get_lockout_message() ); ?></p>
-				<p class="osq-countdown-label">ロック解除まで (Unlock in): <strong id="osq-countdown-timer"></strong></p>
+				<p class="osq-countdown-label">ロック解除まで: <strong id="osq-countdown-timer"></strong></p>
 			</div>
 		<?php elseif ( isset( $_GET['osq_admin_error'] ) ) : ?>
 			<div class="osq-alert osq-alert--error">
@@ -48,22 +48,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 				$error_code = sanitize_text_field( $_GET['osq_admin_error'] );
 				switch ( $error_code ) {
 					case 'empty_fields':
-						esc_html_e( 'ユーザー名とパスワードを入力してください。 (Please enter both your username/email and password.)', 'osq-stress-check' );
+						esc_html_e( 'ユーザー名とパスワードを入力してください。', 'osq-stress-check' );
 						break;
 					case 'invalid_credentials':
-						esc_html_e( '認証情報が正しくありません。 (Invalid credentials. Please try again.)', 'osq-stress-check' );
+						esc_html_e( '認証情報が正しくありません。', 'osq-stress-check' );
 						break;
 					case 'invalid_role':
-						esc_html_e( '管理ポータルへのアクセス権限がありません。 (You do not have permission to access the management portal.)', 'osq-stress-check' );
+						esc_html_e( '管理ポータルへのアクセス権限がありません。', 'osq-stress-check' );
 						break;
 					case 'locked_out':
 						echo esc_html( \OSQ\Auth\LoginManager::get_lockout_message() );
 						break;
 					case 'unauthorized':
-						esc_html_e( 'ダッシュボードにアクセスするにはログインしてください。 (Please login to access the dashboard.)', 'osq-stress-check' );
+						esc_html_e( 'ダッシュボードにアクセスするにはログインしてください。', 'osq-stress-check' );
 						break;
 					default:
-						esc_html_e( 'エラーが発生しました。もう一度お試しください。 (An error occurred. Please try again.)', 'osq-stress-check' );
+						esc_html_e( 'エラーが発生しました。もう一度お試しください。', 'osq-stress-check' );
 				}
 				?>
 			</div>
@@ -74,23 +74,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<input type="hidden" name="osq_admin_login_submit" value="1">
 
 			<div class="osq-form-group">
-				<label for="username"><?php esc_html_e( 'Username or Email Address', 'osq-stress-check' ); ?></label>
+				<label for="username"><?php esc_html_e( 'ユーザー名またはメールアドレス', 'osq-stress-check' ); ?></label>
 				<input type="text" name="username" id="username" class="osq-input" required autofocus <?php echo $is_locked ? 'disabled' : ''; ?>>
 			</div>
 
 			<div class="osq-form-group">
-				<label for="password"><?php esc_html_e( 'Password', 'osq-stress-check' ); ?></label>
+				<label for="password"><?php esc_html_e( 'パスワード', 'osq-stress-check' ); ?></label>
 				<input type="password" name="password" id="password" class="osq-input" required <?php echo $is_locked ? 'disabled' : ''; ?>>
 			</div>
 
 			<div class="osq-form-actions">
 				<?php if ( ! $is_locked ) : ?>
 				<button type="submit" class="osq-button osq-button--admin osq-button--full">
-					<?php esc_html_e( 'Sign In', 'osq-stress-check' ); ?>
+					<?php esc_html_e( 'ログイン', 'osq-stress-check' ); ?>
 				</button>
 				<?php else : ?>
 				<button type="button" class="osq-button osq-button--admin osq-button--full" disabled style="opacity:0.5;cursor:not-allowed;">
-					&#128274; <?php esc_html_e( 'アカウントがロックされています (Account Locked)', 'osq-stress-check' ); ?>
+					&#128274; <?php esc_html_e( 'アカウントがロックされています', 'osq-stress-check' ); ?>
 				</button>
 				<?php endif; ?>
 			</div>
@@ -98,7 +98,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 		<div class="osq-login-footer">
 			<a href="<?php echo esc_url( home_url( '/osq-login/' ) ); ?>" class="osq-back-link">
-				&larr; <?php esc_html_e( 'Employee Portal', 'osq-stress-check' ); ?>
+				&larr; <?php esc_html_e( '従業員ポータル', 'osq-stress-check' ); ?>
 			</a>
 		</div>
 	</div>
@@ -278,7 +278,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		return (h > 0 ? h + '時間 ' : '') + (m > 0 ? m + '分 ' : '') + s + '秒';
 	}
 	function tick() {
-		if (remaining <= 0) { timerEl.textContent = 'ロック解除中... (Unlocking...)'; setTimeout(function() { window.location.reload(); }, 1000); return; }
+		if (remaining <= 0) { timerEl.textContent = 'ロック解除中...'; setTimeout(function() { window.location.reload(); }, 1000); return; }
 		timerEl.textContent = formatTime(remaining);
 		remaining--;
 		setTimeout(tick, 1000);

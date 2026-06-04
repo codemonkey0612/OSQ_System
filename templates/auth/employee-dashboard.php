@@ -28,11 +28,11 @@ $advice_text  = '';
 if ( $response && $response->is_complete ) {
 	$is_high_stress = (bool) ( $response->is_high_stress_method1 || $response->is_high_stress_method2 );
 	if ( $is_high_stress ) {
-		$advice_title = __( 'High Stress Detected', 'osq-stress-check' );
-		$advice_text  = __( 'Your results indicate a high level of stress. We recommend reviewing your results and considering a consultation with an industrial physician.', 'osq-stress-check' );
+		$advice_title = __( '高ストレス検出', 'osq-stress-check' );
+		$advice_text  = __( '結果に高いストレスが検出されました。結果を確認し、産業医への相談をご検討ください。', 'osq-stress-check' );
 	} else {
-		$advice_title = __( 'Normal Stress Levels', 'osq-stress-check' );
-		$advice_text  = __( 'Your results do not indicate a high level of stress at this time. Please continue to monitor your health and maintain a healthy work-life balance.', 'osq-stress-check' );
+		$advice_title = __( 'ストレス正常', 'osq-stress-check' );
+		$advice_text  = __( '現時点では高いストレスは検出されていません。引き続き健康管理に努め、ワークライフバランスを保ってください。', 'osq-stress-check' );
 	}
 
 	$method1_data = maybe_unserialize( $response->method1_result ?? '' );
@@ -100,10 +100,10 @@ if ( $response && $response->is_complete && $employee ) {
 	<main class="osq-admin-main">
 		<header class="osq-admin-header">
 			<div class="osq-header-left">
-				<h2 id="osq-tab-title"><?php echo $must_change_password ? esc_html__( 'Profile', 'osq-stress-check' ) : esc_html__( 'Dashboard', 'osq-stress-check' ); ?></h2>
+				<h2 id="osq-tab-title"><?php echo $must_change_password ? esc_html__( 'プロフィール', 'osq-stress-check' ) : esc_html__( 'ダッシュボード', 'osq-stress-check' ); ?></h2>
 			</div>
 			<div class="osq-header-right">
-				<span class="osq-user-welcome"><?php printf( esc_html__( 'Hello, %s', 'osq-stress-check' ), esc_html( $employee->name ?? '' ) ); ?></span>
+				<span class="osq-user-welcome"><?php printf( esc_html__( 'ようこそ、%s さん', 'osq-stress-check' ), esc_html( $employee->name ?? '' ) ); ?></span>
 			</div>
 		</header>
 
@@ -112,17 +112,17 @@ if ( $response && $response->is_complete && $employee ) {
 				<?php if ( ! $must_change_password ) : ?>
 				<li class="active" data-tab="dashboard">
 					<span class="dashicons dashicons-dashboard"></span>
-					<span><?php esc_html_e( 'Dashboard', 'osq-stress-check' ); ?></span>
+					<span><?php esc_html_e( 'ダッシュボード', 'osq-stress-check' ); ?></span>
 				</li>
 				<?php endif; ?>
 				<li class="<?php echo $must_change_password ? 'active' : ''; ?>" data-tab="profile">
 					<span class="dashicons dashicons-admin-users"></span>
-					<span><?php esc_html_e( 'Profile', 'osq-stress-check' ); ?></span>
+					<span><?php esc_html_e( 'プロフィール', 'osq-stress-check' ); ?></span>
 				</li>
 				<?php if ( ! $must_change_password ) : ?>
 				<li data-tab="settings">
 					<span class="dashicons dashicons-admin-settings"></span>
-					<span><?php esc_html_e( 'Settings', 'osq-stress-check' ); ?></span>
+					<span><?php esc_html_e( '設定', 'osq-stress-check' ); ?></span>
 				</li>
 				<?php endif; ?>
 			</ul>
@@ -132,24 +132,24 @@ if ( $response && $response->is_complete && $employee ) {
 			<!-- Dashboard Main Tab -->
 			<section id="tab-dashboard" class="osq-tab-panel <?php echo $must_change_password ? '' : 'active'; ?>" <?php echo $must_change_password ? 'style="display: none;"' : ''; ?>>
 				<div class="osq-greeting-hero">
-					<h3><?php esc_html_e( 'Your Stress Check Status', 'osq-stress-check' ); ?></h3>
-					<p><?php esc_html_e( 'Welcome to your portal. Please keep track of your health status.', 'osq-stress-check' ); ?></p>
+					<h3><?php esc_html_e( 'ストレスチェック状況', 'osq-stress-check' ); ?></h3>
+					<p><?php esc_html_e( 'ポータルへようこそ。健康状態の確認にご活用ください。', 'osq-stress-check' ); ?></p>
 				</div>
 				
 				<div class="osq-stats-grid">
 					<div class="osq-stat-card">
-						<h3><?php esc_html_e( 'Current Status', 'osq-stress-check' ); ?></h3>
+						<h3><?php esc_html_e( '現在の状況', 'osq-stress-check' ); ?></h3>
 						<div class="osq-status-pill osq-status-pill--<?php echo esc_attr( $status ); ?>">
 							<?php
 							switch ( $status ) {
 								case 'completed':
-									esc_html_e( 'Completed', 'osq-stress-check' );
+									esc_html_e( '完了', 'osq-stress-check' );
 									break;
 								case 'in_progress':
-									esc_html_e( 'In Progress', 'osq-stress-check' );
+									esc_html_e( '回答中', 'osq-stress-check' );
 									break;
 								default:
-									esc_html_e( 'Not Started', 'osq-stress-check' );
+									esc_html_e( '未開始', 'osq-stress-check' );
 							}
 							?>
 						</div>
@@ -164,17 +164,17 @@ if ( $response && $response->is_complete && $employee ) {
 					$fu_badge_text = '';
 					
 					if ( 'Scheduled' === $fu_status ) {
-						$fu_message = __( 'A follow-up interview has been scheduled.', 'osq-stress-check' );
-						$fu_badge_text = __( 'Scheduled', 'osq-stress-check' );
+						$fu_message = __( 'フォローアップ面談が予定されています。', 'osq-stress-check' );
+						$fu_badge_text = __( '予定済み', 'osq-stress-check' );
 					} elseif ( 'Completed' === $fu_status ) {
-						$fu_message = __( 'Your follow-up interview has been completed. Thank you.', 'osq-stress-check' );
-						$fu_badge_text = __( 'Completed', 'osq-stress-check' );
+						$fu_message = __( 'フォローアップ面談が完了しました。ありがとうございます。', 'osq-stress-check' );
+						$fu_badge_text = __( '完了', 'osq-stress-check' );
 					} elseif ( 'Cancelled' === $fu_status ) {
-						$fu_message = __( 'The previously scheduled follow-up interview has been cancelled.', 'osq-stress-check' );
-						$fu_badge_text = __( 'Cancelled', 'osq-stress-check' );
+						$fu_message = __( '予定されていたフォローアップ面談がキャンセルされました。', 'osq-stress-check' );
+						$fu_badge_text = __( 'キャンセル', 'osq-stress-check' );
 					} else {
-						$fu_message = __( 'Your follow-up is currently pending review.', 'osq-stress-check' );
-						$fu_badge_text = __( 'Pending', 'osq-stress-check' );
+						$fu_message = __( 'フォローアップは現在確認待ちです。', 'osq-stress-check' );
+						$fu_badge_text = __( '保留中', 'osq-stress-check' );
 						$fu_badge_class = 'osq-status-badge--pending';
 					}
 					?>
@@ -182,7 +182,7 @@ if ( $response && $response->is_complete && $employee ) {
 						<div class="osq-card-header">
 							<h3 class="osq-card-title">
 								<span class="dashicons dashicons-testimonial"></span>
-								<?php esc_html_e( 'Message from HR / Occupational Health', 'osq-stress-check' ); ?>
+								<?php esc_html_e( '人事・産業保健からのメッセージ', 'osq-stress-check' ); ?>
 							</h3>
 							<span class="osq-status-pill <?php echo esc_attr( $fu_badge_class ); ?>"><?php echo esc_html( $fu_badge_text ); ?></span>
 						</div>
@@ -194,7 +194,7 @@ if ( $response && $response->is_complete && $employee ) {
 						<?php if ( 'Scheduled' === $fu_status && ! empty( $latest_follow_up->scheduled_date ) ) : ?>
 							<div class="osq-scheduled-date-box">
 								<span class="dashicons dashicons-calendar-alt"></span>
-								<?php printf( esc_html__( 'Scheduled Interview: %s', 'osq-stress-check' ), date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $latest_follow_up->scheduled_date ) ) ); ?>
+								<?php printf( esc_html__( '面談予定日: %s', 'osq-stress-check' ), date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $latest_follow_up->scheduled_date ) ) ); ?>
 							</div>
 						<?php endif; ?>
 
@@ -210,7 +210,7 @@ if ( $response && $response->is_complete && $employee ) {
 					<?php if ( 'completed' === $status ) : ?>
 						<div class="osq-result-display" style="margin-bottom: 30px;">
 							<h4 style="font-size: 18px; margin-top: 0; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
-								<span class="dashicons dashicons-clipboard" style="vertical-align: middle;"></span> <?php esc_html_e( '総合判定 (Result Summary)', 'osq-stress-check' ); ?>
+								<span class="dashicons dashicons-clipboard" style="vertical-align: middle;"></span> <?php esc_html_e( '総合判定', 'osq-stress-check' ); ?>
 							</h4>
 							<div class="osq-result-alert osq-result-alert--<?php echo $is_high_stress ? 'high' : 'normal'; ?>">
 								<span class="dashicons dashicons-<?php echo $is_high_stress ? 'warning' : 'id-alt'; ?>"></span>
@@ -223,49 +223,49 @@ if ( $response && $response->is_complete && $employee ) {
 						
 						<div class="osq-score-explanation">
 							<h4 class="osq-section-header">
-								<span class="dashicons dashicons-chart-bar"></span> <?php esc_html_e( 'スコア詳細 (Score Details)', 'osq-stress-check' ); ?>
+								<span class="dashicons dashicons-chart-bar"></span> <?php esc_html_e( 'スコア詳細', 'osq-stress-check' ); ?>
 							</h4>
 							<div class="osq-score-details-grid">
 								<!-- Method 1 -->
 								<div class="osq-score-method-card">
-									<h5><?php esc_html_e( 'Method 1 (Total Points)', 'osq-stress-check' ); ?></h5>
+									<h5><?php esc_html_e( '判定方法1（合計点数）', 'osq-stress-check' ); ?></h5>
 									<div class="osq-score-row">
-										<span><?php esc_html_e( 'Section A', 'osq-stress-check' ); ?></span>
+										<span><?php esc_html_e( 'セクションA', 'osq-stress-check' ); ?></span>
 										<strong><?php echo esc_html( $method1_data['section_a_total'] ?? '-' ); ?></strong>
 									</div>
 									<div class="osq-score-row">
-										<span><?php esc_html_e( 'Section B', 'osq-stress-check' ); ?></span>
+										<span><?php esc_html_e( 'セクションB', 'osq-stress-check' ); ?></span>
 										<strong><?php echo esc_html( $method1_data['section_b_total'] ?? '-' ); ?></strong>
 									</div>
 									<div class="osq-score-row osq-score-row--last">
-										<span><?php esc_html_e( 'Section C', 'osq-stress-check' ); ?></span>
+										<span><?php esc_html_e( 'セクションC', 'osq-stress-check' ); ?></span>
 										<strong><?php echo esc_html( $method1_data['section_c_total'] ?? '-' ); ?></strong>
 									</div>
 									<div class="osq-score-footer">
 										<span class="osq-status-pill <?php echo $response->is_high_stress_method1 ? 'osq-status-badge--cancelled' : 'osq-status-badge--completed'; ?>">
-											<?php echo $response->is_high_stress_method1 ? esc_html__( 'High', 'osq-stress-check' ) : esc_html__( 'Normal', 'osq-stress-check' ); ?>
+											<?php echo $response->is_high_stress_method1 ? esc_html__( '高ストレス', 'osq-stress-check' ) : esc_html__( '正常', 'osq-stress-check' ); ?>
 										</span>
 									</div>
 								</div>
 								
 								<!-- Method 2 -->
 								<div class="osq-score-method-card">
-									<h5><?php esc_html_e( 'Method 2 (Scale Specific)', 'osq-stress-check' ); ?></h5>
+									<h5><?php esc_html_e( '判定方法2（各尺度評価）', 'osq-stress-check' ); ?></h5>
 									<div class="osq-score-row">
-										<span><?php esc_html_e( 'Section A', 'osq-stress-check' ); ?></span>
+										<span><?php esc_html_e( 'セクションA', 'osq-stress-check' ); ?></span>
 										<strong><?php echo esc_html( $method2_data['section_a_eval'] ?? '-' ); ?></strong>
 									</div>
 									<div class="osq-score-row">
-										<span><?php esc_html_e( 'Section B', 'osq-stress-check' ); ?></span>
+										<span><?php esc_html_e( 'セクションB', 'osq-stress-check' ); ?></span>
 										<strong><?php echo esc_html( $method2_data['section_b_eval'] ?? '-' ); ?></strong>
 									</div>
 									<div class="osq-score-row osq-score-row--last">
-										<span><?php esc_html_e( 'Section C', 'osq-stress-check' ); ?></span>
+										<span><?php esc_html_e( 'セクションC', 'osq-stress-check' ); ?></span>
 										<strong><?php echo esc_html( $method2_data['section_c_eval'] ?? '-' ); ?></strong>
 									</div>
 									<div class="osq-score-footer">
 										<span class="osq-status-pill <?php echo $response->is_high_stress_method2 ? 'osq-status-badge--cancelled' : 'osq-status-badge--completed'; ?>">
-											<?php echo $response->is_high_stress_method2 ? esc_html__( 'High', 'osq-stress-check' ) : esc_html__( 'Normal', 'osq-stress-check' ); ?>
+											<?php echo $response->is_high_stress_method2 ? esc_html__( '高ストレス', 'osq-stress-check' ) : esc_html__( '正常', 'osq-stress-check' ); ?>
 										</span>
 									</div>
 								</div>
@@ -275,7 +275,7 @@ if ( $response && $response->is_complete && $employee ) {
 						<!-- Radar Chart (Phase 2) -->
 						<div class="osq-radar-chart-section">
 							<h4 class="osq-section-header">
-								<span class="dashicons dashicons-chart-line"></span> <?php esc_html_e( 'スコアレーダーチャート (Radar Chart)', 'osq-stress-check' ); ?>
+								<span class="dashicons dashicons-chart-line"></span> <?php esc_html_e( 'スコアレーダーチャート', 'osq-stress-check' ); ?>
 							</h4>
 							<div style="max-width:480px;margin:0 auto;">
 								<canvas id="osq-radar-chart" width="480" height="480"></canvas>
@@ -291,7 +291,7 @@ if ( $response && $response->is_complete && $employee ) {
 
 						<div class="osq-self-care-advice">
 							<h4 class="osq-section-header">
-								<span class="dashicons dashicons-heart" style="color: #ec4899;"></span> <?php esc_html_e( 'セルフケアアドバイス (Self-Care Advice)', 'osq-stress-check' ); ?>
+								<span class="dashicons dashicons-heart" style="color: #ec4899;"></span> <?php esc_html_e( 'セルフケアアドバイス', 'osq-stress-check' ); ?>
 								<span class="osq-ai-badge">AI</span>
 							</h4>
 							<div class="osq-advice-card" id="osq-ai-advice-card">
@@ -302,7 +302,7 @@ if ( $response && $response->is_complete && $employee ) {
 								<?php else : ?>
 									<p id="osq-ai-advice-loading">
 										<span class="dashicons dashicons-update osq-spin"></span>
-										<?php esc_html_e( 'AIがあなたの結果を分析中です。しばらくお待ちください… (Generating personalized advice, please wait…)', 'osq-stress-check' ); ?>
+										<?php esc_html_e( 'AIがあなたの結果を分析中です。しばらくお待ちください…', 'osq-stress-check' ); ?>
 									</p>
 									<script>
 									(function() {
@@ -338,16 +338,16 @@ if ( $response && $response->is_complete && $employee ) {
 						</div>
 
 						<div class="osq-download-box">
-							<p><?php esc_html_e( 'You can download your detailed results as a PDF below.', 'osq-stress-check' ); ?></p>
+							<p><?php esc_html_e( '詳細な結果をPDFでダウンロードできます。', 'osq-stress-check' ); ?></p>
 							<button type="button" class="osq-button osq-button--primary osq-js-download-pdf">
-								<span class="dashicons dashicons-pdf"></span> <?php esc_html_e( 'Download Results PDF', 'osq-stress-check' ); ?>
+								<span class="dashicons dashicons-pdf"></span> <?php esc_html_e( '結果PDFをダウンロード', 'osq-stress-check' ); ?>
 							</button>
 						</div>
 					<?php else : ?>
 						<div class="osq-prompt-box">
-							<p><?php esc_html_e( 'Please complete all questions to receive your stress evaluation results.', 'osq-stress-check' ); ?></p>
+							<p><?php esc_html_e( 'ストレス評価結果を受け取るには、すべての設問にお答えください。', 'osq-stress-check' ); ?></p>
 							<a href="<?php echo esc_url( home_url( '/osq-questionnaire/' ) ); ?>" class="osq-button osq-button--primary">
-								<?php echo 'in_progress' === $status ? esc_html__( 'Resume Stress Check', 'osq-stress-check' ) : esc_html__( 'Start Stress Check', 'osq-stress-check' ); ?>
+								<?php echo 'in_progress' === $status ? esc_html__( 'ストレスチェックを再開する', 'osq-stress-check' ) : esc_html__( 'ストレスチェックを開始する', 'osq-stress-check' ); ?>
 							</a>
 						</div>
 					<?php endif; ?>
@@ -357,33 +357,33 @@ if ( $response && $response->is_complete && $employee ) {
 			<!-- Profile Tab -->
 			<section id="tab-profile" class="osq-tab-panel <?php echo $must_change_password ? 'active' : ''; ?>" <?php echo $must_change_password ? '' : 'style="display: none;"'; ?>>
 				<div class="osq-panel-card" style="max-width: 600px;">
-					<h3 style="margin-top: 0; margin-bottom: 20px;"><?php esc_html_e( 'Change Password', 'osq-stress-check' ); ?></h3>
+					<h3 style="margin-top: 0; margin-bottom: 20px;"><?php esc_html_e( 'パスワード変更', 'osq-stress-check' ); ?></h3>
 					
 					<?php if ( $must_change_password ) : ?>
 						<div class="osq-result-alert osq-result-alert--high" style="margin-bottom: 30px;">
 							<span class="dashicons dashicons-warning"></span>
 							<div class="osq-result-text">
-								<strong><?php esc_html_e( 'Password Change Required', 'osq-stress-check' ); ?></strong>
-								<p><?php esc_html_e( 'For security reasons, you must change your initial password before you can access the dashboard.', 'osq-stress-check' ); ?></p>
+								<strong><?php esc_html_e( 'パスワードの変更が必要です', 'osq-stress-check' ); ?></strong>
+								<p><?php esc_html_e( 'セキュリティ上の理由から、ダッシュボードにアクセスする前に初期パスワードを変更してください。', 'osq-stress-check' ); ?></p>
 							</div>
 						</div>
 					<?php endif; ?>
 
 					<form id="osq-employee-password-form" class="osq-admin-form">
 						<div class="osq-form-row">
-							<label><?php esc_html_e( 'Current Password', 'osq-stress-check' ); ?></label>
+							<label><?php esc_html_e( '現在のパスワード', 'osq-stress-check' ); ?></label>
 							<input type="password" name="current_password" required class="osq-input">
 						</div>
 						<div class="osq-form-row">
-							<label><?php esc_html_e( 'New Password', 'osq-stress-check' ); ?></label>
+							<label><?php esc_html_e( '新しいパスワード', 'osq-stress-check' ); ?></label>
 							<input type="password" name="new_password" required minlength="8" class="osq-input">
 						</div>
 						<div class="osq-form-row">
-							<label><?php esc_html_e( 'Confirm New Password', 'osq-stress-check' ); ?></label>
+							<label><?php esc_html_e( '新しいパスワード（確認）', 'osq-stress-check' ); ?></label>
 							<input type="password" name="confirm_password" required minlength="8" class="osq-input">
 						</div>
 						<div class="osq-form-actions">
-							<button type="submit" class="osq-button osq-button--primary"><?php esc_html_e( 'Update Password', 'osq-stress-check' ); ?></button>
+							<button type="submit" class="osq-button osq-button--primary"><?php esc_html_e( 'パスワードを更新する', 'osq-stress-check' ); ?></button>
 						</div>
 						<div id="osq-password-message" class="osq-settings-message" style="display: none; margin-top: 20px;"></div>
 					</form>
@@ -393,14 +393,14 @@ if ( $response && $response->is_complete && $employee ) {
 			<!-- Settings Tab -->
 			<section id="tab-settings" class="osq-tab-panel">
 				<div class="osq-panel-card" style="max-width: 600px;">
-					<h3 style="margin-top: 0; margin-bottom: 20px;"><?php esc_html_e( 'Settings', 'osq-stress-check' ); ?></h3>
+					<h3 style="margin-top: 0; margin-bottom: 20px;"><?php esc_html_e( '設定', 'osq-stress-check' ); ?></h3>
 					<div class="osq-form-row">
-						<label><?php esc_html_e( 'System Language', 'osq-stress-check' ); ?></label>
+						<label><?php esc_html_e( 'システム言語', 'osq-stress-check' ); ?></label>
 						<form method="get" action="">
 							<select name="osq_lang" onchange="this.form.submit()" class="osq-input">
 								<?php $curr_locale = get_locale(); ?>
-								<option value="en_US" <?php selected( $curr_locale, 'en_US' ); ?>><?php esc_html_e( 'English', 'osq-stress-check' ); ?></option>
-								<option value="ja" <?php selected( $curr_locale, 'ja' ); ?>><?php esc_html_e( 'Japanese', 'osq-stress-check' ); ?></option>
+								<option value="en_US" <?php selected( $curr_locale, 'en_US' ); ?>><?php esc_html_e( '英語', 'osq-stress-check' ); ?></option>
+								<option value="ja" <?php selected( $curr_locale, 'ja' ); ?>><?php esc_html_e( '日本語', 'osq-stress-check' ); ?></option>
 							</select>
 						</form>
 					</div>
@@ -415,12 +415,11 @@ if ( $response && $response->is_complete && $employee ) {
 				<table style="width: 100%; border-collapse: collapse;">
 					<tr>
 						<td style="text-align: left;">
-							<h1 style="color: #007cba; margin: 0; font-size: 24px;"><?php esc_html_e( 'Stress Check Results Report', 'osq-stress-check' ); ?></h1>
-							<p style="margin: 5px 0 0; color: #666; font-size: 14px;"><?php esc_html_e( 'ストレスチェック結果報告書', 'osq-stress-check' ); ?></p>
+							<h1 style="color: #007cba; margin: 0; font-size: 24px;"><?php esc_html_e( 'ストレスチェック結果報告書', 'osq-stress-check' ); ?></h1>
 						</td>
 						<td style="text-align: right; vertical-align: bottom;">
 							<p style="margin: 0; color: #666; font-size: 14px;">
-								<strong><?php esc_html_e( 'Date:', 'osq-stress-check' ); ?></strong> <?php echo esc_html( date_i18n( get_option( 'date_format' ), strtotime( $response->completed_at ?? 'now' ) ) ); ?>
+								<strong><?php esc_html_e( '日付：', 'osq-stress-check' ); ?></strong> <?php echo esc_html( date_i18n( get_option( 'date_format' ), strtotime( $response->completed_at ?? 'now' ) ) ); ?>
 							</p>
 						</td>
 					</tr>
@@ -429,14 +428,14 @@ if ( $response && $response->is_complete && $employee ) {
 
 			<!-- Employee Info -->
 			<div style="margin-bottom: 25px;">
-				<p style="margin: 0 0 5px;"><strong><?php esc_html_e( 'Name:', 'osq-stress-check' ); ?></strong> <?php echo esc_html( $employee->name ?? '' ); ?></p>
-				<p style="margin: 0;"><strong><?php esc_html_e( 'Employee ID:', 'osq-stress-check' ); ?></strong> <?php echo esc_html( $employee->employee_number ?? '' ); ?></p>
+				<p style="margin: 0 0 5px;"><strong><?php esc_html_e( '氏名：', 'osq-stress-check' ); ?></strong> <?php echo esc_html( $employee->name ?? '' ); ?></p>
+				<p style="margin: 0;"><strong><?php esc_html_e( '社員番号：', 'osq-stress-check' ); ?></strong> <?php echo esc_html( $employee->employee_number ?? '' ); ?></p>
 			</div>
 
 			<!-- Result Summary -->
 			<div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 25px; border: 1px solid #e2e8f0; border-left: 5px solid <?php echo $is_high_stress ? '#ef4444' : '#10b981'; ?>;">
 				<h2 style="margin-top: 0; font-size: 18px; color: <?php echo $is_high_stress ? '#b91c1c' : '#15803d'; ?>; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 15px;">
-					<?php esc_html_e( 'Overall Determination', 'osq-stress-check' ); ?>
+					<?php esc_html_e( '総合判定', 'osq-stress-check' ); ?>
 				</h2>
 				<p style="font-size: 20px; font-weight: bold; margin: 0 0 10px; color: <?php echo $is_high_stress ? '#ef4444' : '#10b981'; ?>;">
 					<?php echo esc_html( $advice_title ); ?>
@@ -449,36 +448,36 @@ if ( $response && $response->is_complete && $employee ) {
 			<!-- Scoring Details -->
 			<div style="margin-bottom: 25px;">
 				<h3 style="border-bottom: 2px solid #334155; padding-bottom: 8px; color: #1e293b; font-size: 18px; margin-bottom: 20px;">
-					<?php esc_html_e( 'スコア詳細 (Scoring Details)', 'osq-stress-check' ); ?>
+					<?php esc_html_e( 'スコア詳細', 'osq-stress-check' ); ?>
 				</h3>
 				
 				<!-- Method 1 Table -->
 				<div style="margin-bottom: 25px;">
-					<h4 style="margin: 0 0 10px; color: #0369a1; font-size: 15px;"><?php esc_html_e( '判定方法1：合計点数による判定 (Method 1: Total Points)', 'osq-stress-check' ); ?></h4>
+					<h4 style="margin: 0 0 10px; color: #0369a1; font-size: 15px;"><?php esc_html_e( '判定方法1：合計点数による判定', 'osq-stress-check' ); ?></h4>
 					<table style="width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #cbd5e1; table-layout: fixed;">
 						<thead>
 							<tr style="background: #f1f5f9;">
-								<th style="padding: 10px; text-align: left; border: 1px solid #cbd5e1; font-size: 12px; width: 70%;"><?php esc_html_e( '判定項目 (Category)', 'osq-stress-check' ); ?></th>
-								<th style="padding: 10px; text-align: center; border: 1px solid #cbd5e1; font-size: 12px; width: 30%;"><?php esc_html_e( '得点 (Score)', 'osq-stress-check' ); ?></th>
+								<th style="padding: 10px; text-align: left; border: 1px solid #cbd5e1; font-size: 12px; width: 70%;"><?php esc_html_e( '判定項目', 'osq-stress-check' ); ?></th>
+								<th style="padding: 10px; text-align: center; border: 1px solid #cbd5e1; font-size: 12px; width: 30%;"><?php esc_html_e( '得点', 'osq-stress-check' ); ?></th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr>
-								<td style="padding: 10px; border: 1px solid #cbd5e1; font-size: 13px;"><?php esc_html_e( 'A: 仕事のストレス要因 (Stressors)', 'osq-stress-check' ); ?></td>
+								<td style="padding: 10px; border: 1px solid #cbd5e1; font-size: 13px;"><?php esc_html_e( 'A: 仕事のストレス要因', 'osq-stress-check' ); ?></td>
 								<td style="padding: 10px; text-align: center; border: 1px solid #cbd5e1; font-weight: bold; font-size: 14px;"><?php echo esc_html( $method1_data['section_a_total'] ?? '-' ); ?></td>
 							</tr>
 							<tr>
-								<td style="padding: 10px; border: 1px solid #cbd5e1; font-size: 13px;"><?php esc_html_e( 'B: 心身のストレス反応 (Stress Reactions)', 'osq-stress-check' ); ?></td>
+								<td style="padding: 10px; border: 1px solid #cbd5e1; font-size: 13px;"><?php esc_html_e( 'B: 心身のストレス反応', 'osq-stress-check' ); ?></td>
 								<td style="padding: 10px; text-align: center; border: 1px solid #cbd5e1; font-weight: bold; font-size: 14px;"><?php echo esc_html( $method1_data['section_b_total'] ?? '-' ); ?></td>
 							</tr>
 							<tr>
-								<td style="padding: 10px; border: 1px solid #cbd5e1; font-size: 13px;"><?php esc_html_e( 'C: 周囲のサポート (Social Support)', 'osq-stress-check' ); ?></td>
+								<td style="padding: 10px; border: 1px solid #cbd5e1; font-size: 13px;"><?php esc_html_e( 'C: 周囲のサポート', 'osq-stress-check' ); ?></td>
 								<td style="padding: 10px; text-align: center; border: 1px solid #cbd5e1; font-weight: bold; font-size: 14px;"><?php echo esc_html( $method1_data['section_c_total'] ?? '-' ); ?></td>
 							</tr>
 							<tr style="background: <?php echo $response->is_high_stress_method1 ? '#fef2f2' : '#f0fdf4'; ?>;">
-								<td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: bold; font-size: 13px;"><?php esc_html_e( '判定結果 (Method 1 Determination)', 'osq-stress-check' ); ?></td>
+								<td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: bold; font-size: 13px;"><?php esc_html_e( '判定結果', 'osq-stress-check' ); ?></td>
 								<td style="padding: 12px; text-align: center; border: 1px solid #cbd5e1; font-weight: bold; color: <?php echo $response->is_high_stress_method1 ? '#ef4444' : '#10b981'; ?>; font-size: 14px;">
-									<?php echo $response->is_high_stress_method1 ? esc_html__( '高ストレス (High Stress)', 'osq-stress-check' ) : esc_html__( '通常 (Normal)', 'osq-stress-check' ); ?>
+									<?php echo $response->is_high_stress_method1 ? esc_html__( '高ストレス', 'osq-stress-check' ) : esc_html__( '通常', 'osq-stress-check' ); ?>
 								</td>
 							</tr>
 						</tbody>
@@ -487,31 +486,31 @@ if ( $response && $response->is_complete && $employee ) {
 
 				<!-- Method 2 Table -->
 				<div>
-					<h4 style="margin: 0 0 10px; color: #6d28d9; font-size: 15px;"><?php esc_html_e( '判定方法2：各尺度の評価による判定 (Method 2: Scale Specific)', 'osq-stress-check' ); ?></h4>
+					<h4 style="margin: 0 0 10px; color: #6d28d9; font-size: 15px;"><?php esc_html_e( '判定方法2：各尺度の評価による判定', 'osq-stress-check' ); ?></h4>
 					<table style="width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #cbd5e1; table-layout: fixed;">
 						<thead>
 							<tr style="background: #f1f5f9;">
-								<th style="padding: 10px; text-align: left; border: 1px solid #cbd5e1; font-size: 12px; width: 70%;"><?php esc_html_e( '判定項目 (Category)', 'osq-stress-check' ); ?></th>
-								<th style="padding: 10px; text-align: center; border: 1px solid #cbd5e1; font-size: 12px; width: 30%;"><?php esc_html_e( '評価 (Evaluation)', 'osq-stress-check' ); ?></th>
+								<th style="padding: 10px; text-align: left; border: 1px solid #cbd5e1; font-size: 12px; width: 70%;"><?php esc_html_e( '判定項目', 'osq-stress-check' ); ?></th>
+								<th style="padding: 10px; text-align: center; border: 1px solid #cbd5e1; font-size: 12px; width: 30%;"><?php esc_html_e( '評価', 'osq-stress-check' ); ?></th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr>
-								<td style="padding: 10px; border: 1px solid #cbd5e1; font-size: 13px;"><?php esc_html_e( 'A: 仕事のストレス要因 (Stressors)', 'osq-stress-check' ); ?></td>
+								<td style="padding: 10px; border: 1px solid #cbd5e1; font-size: 13px;"><?php esc_html_e( 'A: 仕事のストレス要因', 'osq-stress-check' ); ?></td>
 								<td style="padding: 10px; text-align: center; border: 1px solid #cbd5e1; font-weight: bold; font-size: 14px;"><?php echo esc_html( $method2_data['section_a_eval'] ?? '-' ); ?></td>
 							</tr>
 							<tr>
-								<td style="padding: 10px; border: 1px solid #cbd5e1; font-size: 13px;"><?php esc_html_e( 'B: 心身のストレス反応 (Stress Reactions)', 'osq-stress-check' ); ?></td>
+								<td style="padding: 10px; border: 1px solid #cbd5e1; font-size: 13px;"><?php esc_html_e( 'B: 心身のストレス反応', 'osq-stress-check' ); ?></td>
 								<td style="padding: 10px; text-align: center; border: 1px solid #cbd5e1; font-weight: bold; font-size: 14px;"><?php echo esc_html( $method2_data['section_b_eval'] ?? '-' ); ?></td>
 							</tr>
 							<tr>
-								<td style="padding: 10px; border: 1px solid #cbd5e1; font-size: 13px;"><?php esc_html_e( 'C: 周囲のサポート (Social Support)', 'osq-stress-check' ); ?></td>
+								<td style="padding: 10px; border: 1px solid #cbd5e1; font-size: 13px;"><?php esc_html_e( 'C: 周囲のサポート', 'osq-stress-check' ); ?></td>
 								<td style="padding: 10px; text-align: center; border: 1px solid #cbd5e1; font-weight: bold; font-size: 14px;"><?php echo esc_html( $method2_data['section_c_eval'] ?? '-' ); ?></td>
 							</tr>
 							<tr style="background: <?php echo $response->is_high_stress_method2 ? '#fef2f2' : '#f0fdf4'; ?>;">
-								<td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: bold; font-size: 13px;"><?php esc_html_e( '判定結果 (Method 2 Determination)', 'osq-stress-check' ); ?></td>
+								<td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: bold; font-size: 13px;"><?php esc_html_e( '判定結果', 'osq-stress-check' ); ?></td>
 								<td style="padding: 12px; text-align: center; border: 1px solid #cbd5e1; font-weight: bold; color: <?php echo $response->is_high_stress_method2 ? '#ef4444' : '#10b981'; ?>; font-size: 14px;">
-									<?php echo $response->is_high_stress_method2 ? esc_html__( '高ストレス (High Stress)', 'osq-stress-check' ) : esc_html__( '通常 (Normal)', 'osq-stress-check' ); ?>
+									<?php echo $response->is_high_stress_method2 ? esc_html__( '高ストレス', 'osq-stress-check' ) : esc_html__( '通常', 'osq-stress-check' ); ?>
 								</td>
 							</tr>
 						</tbody>
@@ -523,7 +522,7 @@ if ( $response && $response->is_complete && $employee ) {
 				$pdf_advice = mb_strlen( $ai_advice ) > 400 ? mb_substr( $ai_advice, 0, 400 ) . '…' : $ai_advice;
 			?>
 			<div style="margin-bottom:20px;padding:15px;background:#f0f9ff;border-left:4px solid #0369a1;border-radius:4px;">
-				<h3 style="margin:0 0 10px;font-size:15px;color:#0369a1;">AIセルフケアアドバイス (AI Self-Care Advice)</h3>
+				<h3 style="margin:0 0 10px;font-size:15px;color:#0369a1;">AIセルフケアアドバイス</h3>
 				<p style="margin:0;font-size:13px;line-height:1.7;white-space:pre-wrap;"><?php echo esc_html( $pdf_advice ); ?></p>
 			</div>
 			<div style="font-size:11px;color:#555;border:1px solid #e2e8f0;border-radius:4px;padding:10px;margin-bottom:20px;">
@@ -533,7 +532,7 @@ if ( $response && $response->is_complete && $employee ) {
 			<?php endif; ?>
 
 			<div style="font-size: 12px; color: #999; margin-top: 50px; text-align: center; border-top: 1px solid #eee; padding-top: 20px;">
-				<p><?php printf( esc_html__( 'Generated by %s', 'osq-stress-check' ), get_bloginfo( 'name' ) ); ?></p>
+				<p><?php printf( esc_html__( '%s 発行', 'osq-stress-check' ), get_bloginfo( 'name' ) ); ?></p>
 			</div>
 		</div>
 	</main>

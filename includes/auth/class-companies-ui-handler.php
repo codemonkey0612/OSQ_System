@@ -31,6 +31,8 @@ class CompaniesUiHandler {
 		add_action( 'wp_ajax_osq_companies_save', array( $this, 'ajax_save_company' ) );
 		add_action( 'wp_ajax_osq_companies_delete', array( $this, 'ajax_delete_company' ) );
 		add_action( 'wp_ajax_osq_companies_switch', array( $this, 'ajax_switch_company' ) );
+		add_action( 'wp_ajax_osq_companies_init_demo', array( $this, 'ajax_init_demo' ) );
+		add_action( 'wp_ajax_osq_companies_reset_demo', array( $this, 'ajax_reset_demo' ) );
 	}
 
 	public function enqueue_assets() {
@@ -167,10 +169,17 @@ class CompaniesUiHandler {
 			'org_label_1'    => sanitize_text_field( $_POST['org_label_1'] ?? '組織1' ),
 			'org_label_2'    => sanitize_text_field( $_POST['org_label_2'] ?? '組織2' ),
 			'org_label_3'    => sanitize_text_field( $_POST['org_label_3'] ?? '組織3' ),
+			'org_label_4'    => sanitize_text_field( $_POST['org_label_4'] ?? '' ) ?: null,
+			'org_label_5'    => sanitize_text_field( $_POST['org_label_5'] ?? '' ) ?: null,
 			'min_group_size' => absint( $_POST['min_group_size'] ?? 5 ),
 			'is_active'      => absint( $_POST['is_active'] ?? 1 ),
 		);
-		$formats = array( '%s', '%s', '%s', '%s', '%s', '%d', '%d' );
+		$formats = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%d' );
+
+		// Clear the org-label cache for this company so fresh data is served immediately.
+		if ( $company_id ) {
+			wp_cache_delete( 'osq_org_labels_' . $company_id );
+		}
 
 		if ( $company_id ) {
 			$wpdb->update( $table, $data, array( 'company_id' => $company_id ), $formats, array( '%d' ) );
@@ -216,6 +225,142 @@ class CompaniesUiHandler {
 		// Store in session via transient (user-specific, 1 hour)
 		set_transient( 'osq_super_admin_ctx_' . get_current_user_id(), $company_id, HOUR_IN_SECONDS );
 		wp_send_json_success( array( 'company_id' => $company_id ) );
+	}
+
+	/**
+	 * AJAX: Create the wellancデモ company and seed demo data (idempotent).
+	 */
+	public function ajax_init_demo() {
+		check_ajax_referer( 'osq_companies_ajax', 'nonce' );
+		if ( ! CapabilityMatrix::user_has( CapabilityMatrix::MANAGE_ALL_COMPANIES ) ) {
+			wp_send_json_error( 'Unauthorized', 403 );
+		}
+		global $wpdb;
+		$this->seed_demo_company( $wpdb );
+		wp_send_json_success( array( 'message' => 'デモ企業を初期化しました。' ) );
+	}
+
+	/**
+	 * AJAX: Reset (wipe + re-seed) the demo company data.
+	 */
+	public function ajax_reset_demo() {
+		check_ajax_referer( 'osq_companies_ajax', 'nonce' );
+		if ( ! CapabilityMatrix::user_has( CapabilityMatrix::MANAGE_ALL_COMPANIES ) ) {
+			wp_send_json_error( 'Unauthorized', 403 );
+		}
+		global $wpdb;
+		$demo = $wpdb->get_row( "SELECT company_id FROM {$wpdb->prefix}osq_companies WHERE is_demo = 1 LIMIT 1" );
+		if ( $demo ) {
+			$cid = (int) $demo->company_id;
+			$wpdb->delete( $wpdb->prefix . \OSQ\Database\Schema::RESPONSES, array( 'company_id' => $cid ), array( '%d' ) );
+			$wpdb->delete( $wpdb->prefix . \OSQ\Database\Schema::EMPLOYEES, array( 'company_id' => $cid ), array( '%d' ) );
+		}
+		$this->seed_demo_company( $wpdb );
+		wp_send_json_success( array( 'message' => 'デモデータをリセットしました。' ) );
+	}
+
+	/**
+	 * Create demo company if absent, then seed employees + responses.
+	 */
+	private function seed_demo_company( $wpdb ) {
+		$table = $wpdb->prefix . \OSQ\Database\Schema::COMPANIES;
+
+		$demo = $wpdb->get_row( "SELECT company_id FROM {$table} WHERE is_demo = 1 LIMIT 1" );
+		if ( ! $demo ) {
+			$wpdb->insert( $table, array(
+				'company_name'   => 'wellancデモ',
+				'company_slug'   => 'wellanc-demo',
+				'org_label_1'    => '部署',
+				'org_label_2'    => 'チーム',
+				'org_label_3'    => null,
+				'org_label_4'    => null,
+				'org_label_5'    => null,
+				'min_group_size' => 3,
+				'is_active'      => 1,
+				'is_demo'        => 1,
+			), array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%d' ) );
+			$demo_id = (int) $wpdb->insert_id;
+		} else {
+			$demo_id = (int) $demo->company_id;
+		}
+
+		$emp_table = $wpdb->prefix . \OSQ\Database\Schema::EMPLOYEES;
+		$res_table = $wpdb->prefix . \OSQ\Database\Schema::RESPONSES;
+
+		// Only seed if no employees exist for this demo company.
+		$existing = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT COUNT(*) FROM {$emp_table} WHERE company_id = %d", $demo_id
+		) );
+		if ( $existing > 0 ) {
+			return;
+		}
+
+		$orgs = array(
+			array( '営業部', 'チームA' ),
+			array( '営業部', 'チームB' ),
+			array( '開発部', 'チームC' ),
+		);
+		$demo_responses = $this->build_demo_method_results();
+		$emp_num = 1;
+
+		foreach ( $orgs as $org_pair ) {
+			for ( $i = 1; $i <= 5; $i++ ) {
+				$emp_number = sprintf( 'DEMO%03d', $emp_num );
+				$wpdb->insert( $emp_table, array(
+					'employee_number' => $emp_number,
+					'company_id'      => $demo_id,
+					'name'            => 'デモ従業員' . $emp_num,
+					'email'           => 'demo' . $emp_num . '@wellanc-demo.example',
+					'organization_1'  => $org_pair[0],
+					'organization_2'  => $org_pair[1],
+				), array( '%s', '%d', '%s', '%s', '%s', '%s' ) );
+
+				$inserted_emp_id = (int) $wpdb->insert_id;
+
+				// 4 of 5 in each group get completed responses (12/15 total); last employee in each group is non-respondent.
+				if ( $i <= 4 && $inserted_emp_id > 0 ) {
+					$r = $demo_responses[ $emp_num % count( $demo_responses ) ];
+					$wpdb->insert( $res_table, array(
+						'employee_id'    => $inserted_emp_id,
+						'company_id'     => $demo_id,
+						'is_complete'    => 1,
+						'method1_result' => maybe_serialize( $r['m1'] ),
+						'method2_result' => maybe_serialize( $r['m2'] ),
+						'response_data'  => maybe_serialize( array() ),
+						'completed_at'   => current_time( 'mysql' ),
+					), array( '%d', '%d', '%d', '%s', '%s', '%s', '%s' ) );
+				}
+				$emp_num++;
+			}
+		}
+	}
+
+	/**
+	 * Pre-built demo method results for seeding.
+	 */
+	private function build_demo_method_results() {
+		$scales_high = array(
+			'quantitative_demands' => 4, 'qualitative_demands' => 4, 'physical_workload' => 3,
+			'interpersonal_stress' => 3, 'environment_stress' => 2, 'job_control' => 2,
+			'skill_utilization' => 3, 'job_fit' => 2, 'reward' => 2,
+			'vigor' => 2, 'irritability' => 4, 'fatigue' => 4,
+			'anxiety' => 4, 'depression' => 4, 'physical_complaints' => 3,
+			'supervisor_support' => 2, 'colleague_support' => 3, 'family_support' => 3,
+		);
+		$scales_normal = array(
+			'quantitative_demands' => 2, 'qualitative_demands' => 2, 'physical_workload' => 2,
+			'interpersonal_stress' => 2, 'environment_stress' => 3, 'job_control' => 3,
+			'skill_utilization' => 4, 'job_fit' => 4, 'reward' => 4,
+			'vigor' => 4, 'irritability' => 2, 'fatigue' => 2,
+			'anxiety' => 2, 'depression' => 2, 'physical_complaints' => 1,
+			'supervisor_support' => 4, 'colleague_support' => 4, 'family_support' => 4,
+		);
+		return array(
+			array( 'm1' => array( 'is_high_stress' => true,  'total' => 75 ), 'm2' => array( 'is_high_stress' => true,  'eval_points' => $scales_high ) ),
+			array( 'm1' => array( 'is_high_stress' => false, 'total' => 45 ), 'm2' => array( 'is_high_stress' => false, 'eval_points' => $scales_normal ) ),
+			array( 'm1' => array( 'is_high_stress' => false, 'total' => 50 ), 'm2' => array( 'is_high_stress' => false, 'eval_points' => $scales_normal ) ),
+			array( 'm1' => array( 'is_high_stress' => true,  'total' => 80 ), 'm2' => array( 'is_high_stress' => true,  'eval_points' => $scales_high ) ),
+		);
 	}
 
 	/**

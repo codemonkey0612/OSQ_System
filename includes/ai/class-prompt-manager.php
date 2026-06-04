@@ -184,6 +184,79 @@ EOT;
 	}
 
 	/**
+	 * Build the system prompt for org-level AI advice.
+	 *
+	 * Merges the editable org base prompt (stored in wp_options) with
+	 * the org context header (company, axis label, group name).
+	 *
+	 * @param array $org_data { company_name, org_level_label, org_value }
+	 * @return string
+	 */
+	public static function build_org_system_prompt( $org_data ) {
+		$base = self::get_org_prompt();
+
+		$context  = "【組織分析コンテキスト】\n";
+		$context .= '企業名: ' . ( $org_data['company_name'] ?? '' ) . "\n";
+		$context .= '集計軸: ' . ( $org_data['org_level_label'] ?? '' ) . "\n";
+		$context .= '対象グループ: ' . ( $org_data['org_value'] ?? '' ) . "\n\n";
+
+		return $context . $base;
+	}
+
+	/**
+	 * Get the org-level system prompt (from wp_options, fallback to default).
+	 *
+	 * @return string
+	 */
+	public static function get_org_prompt() {
+		$saved = get_option( 'osq_org_advice_prompt', '' );
+		return ( $saved !== '' ) ? $saved : self::get_default_org_prompt();
+	}
+
+	/**
+	 * Save the org-level system prompt to wp_options.
+	 *
+	 * @param string $prompt
+	 * @return bool
+	 */
+	public static function update_org_prompt( $prompt ) {
+		return update_option( 'osq_org_advice_prompt', $prompt );
+	}
+
+	/**
+	 * Built-in default org-level prompt (based on wellanc requirements).
+	 * Encodes the 5 design principles and safety guardrails the client specified.
+	 *
+	 * @return string
+	 */
+	public static function get_default_org_prompt() {
+		return <<<'EOT'
+あなたは組織の産業保健を専門とするシニアコンサルタントです。今回提示された「組織別ストレスチェック集計データ」を根拠に、そのグループ全体のストレス傾向に対する実務的な総評と対策アドバイスを日本語で提供してください。
+
+【出力の根底となる思想】
+本アドバイスは「原因を探す・犯人を特定するストレスチェック」ではなく、「数値という客観的事実を根拠に、組織全体に気づきを与えるストレスチェック」です。以下の思想を必ず守ってください。
+
+① ストレスの原因を会社・環境・特定の立場に帰属・断定することは絶対禁止です。「このグループのストレスは〇〇が原因です」「職場環境が問題です」といった断定表現は一切使わないでください。仕事とプライベートは切り離せないという前提で、あくまで「可能性」「傾向」「一般的に見られるパターン」として表現してください。
+
+② 「共感して終わり」の汎用アドバイス禁止。「休養を取りましょう」「コミュニケーションを大切に」等、どのグループにも当てはまる表面的な文言は出力しないでください。提示されたスコアデータに直結した、このグループ固有の傾向として読み取れる具体的な観察と示唆を提示してください。
+
+③ 数値に基づく「将来の身体リスク」の提示。現在の集計スコア（客観的な事実）を根拠に、「この傾向が続いた場合、身体・精神にどのような変化や症状が起こりうるか」という可能性を、過度な恐怖感を与えずに提示してください。読んだ人が「日常のあの感覚はこれだったかもしれない」と自分で気づけるトリガーとなる表現を意識してください。
+
+④ 同業他社・業界平均との比較軸を意識した客観的な立ち位置の提示。「一般的な同業種・同規模組織と比較して、このグループのどの尺度が高い・低い傾向にあるか」という相対的な視点を含めてください（断定ではなく傾向として）。
+
+【表現の絶対ルール（安全ガードレール）】
+・「〇〇です」「〇〇が原因です」等の断定・診断類似表現は禁止。「〜という傾向が見られます」「〜の可能性が考えられます」「一般的に〜とされています」等の表現を使うこと。
+・「深刻なリスクがあります」「危険な状態です」等、恐怖感・不安感を過度に煽る言葉は禁止。
+・具体的な医療指示・治療推奨・診断類似の発言は絶対禁止。
+・本アドバイスは「今回の集計データに基づく一つの参考情報」であることが伝わる表現を必ず含め、受け取る側が過度に重く受け止めないよう配慮してください。
+・管理職や担当者が読んでも、個人攻撃・組織批判と受け取られない、フラットで誠実なビジネストーンを維持してください。
+
+【出力バリエーションの確保】
+同じスコアパターンであっても、グループ名・業種文脈・数値の組み合わせから毎回異なる切り口・表現・観察ポイントを見つけ、新鮮で説得力のある文面を出力してください。テンプレートの使い回しや定型文の繰り返しは厳禁です。
+EOT;
+	}
+
+	/**
 	 * Generic fallback prompt (used when industry is unknown).
 	 *
 	 * @return array

@@ -35,6 +35,8 @@ class CsvImporter {
 		'organization_1',
 		'organization_2',
 		'organization_3',
+		'organization_4',
+		'organization_5',
 		'job_type',
 		'position',
 		'employment_type',
@@ -114,6 +116,22 @@ class CsvImporter {
 			'組織3',
 			'組織レベル3',
 		),
+		'organization_4' => array(
+			'organization_4',
+			'organization 4',
+			'organization4',
+			'organization level 4',
+			'組織4',
+			'組織レベル4',
+		),
+		'organization_5' => array(
+			'organization_5',
+			'organization 5',
+			'organization5',
+			'organization level 5',
+			'組織5',
+			'組織レベル5',
+		),
 		'job_type' => array(
 			'job_type',
 			'job type',
@@ -192,7 +210,27 @@ class CsvImporter {
 
 		// Detect header row (supports templates with a lead instruction row).
 		$header_row_index = $this->detect_header_row_index( $lines );
-		$header           = $this->normalize_headers( $lines[ $header_row_index ] );
+		$raw_header_row   = $lines[ $header_row_index ];
+		$header           = $this->normalize_headers( $raw_header_row );
+
+		// Capture raw org header text → save as dynamic labels for this tenant.
+		$raw_org_headers = array();
+		foreach ( $header as $col_index => $canonical ) {
+			for ( $level = 1; $level <= 5; $level++ ) {
+				if ( 'organization_' . $level === $canonical ) {
+					$raw_text = trim( $raw_header_row[ $col_index ] ?? '' );
+					if ( '' !== $raw_text ) {
+						$raw_org_headers[ $level ] = $raw_text;
+					}
+				}
+			}
+		}
+		if ( ! empty( $raw_org_headers ) ) {
+			\OSQ\Services\OrgLabelService::save_from_headers(
+				\OSQ\Database\DbManager::current_company_id(),
+				$raw_org_headers
+			);
+		}
 
 		// Validate required columns exist.
 		foreach ( self::REQUIRED_COLUMNS as $col ) {
@@ -519,6 +557,8 @@ class CsvImporter {
 			'organization_1'  => sanitize_text_field( $row['organization_1'] ?? '' ),
 			'organization_2'  => sanitize_text_field( $row['organization_2'] ?? '' ),
 			'organization_3'  => sanitize_text_field( $row['organization_3'] ?? '' ),
+			'organization_4'  => sanitize_text_field( $row['organization_4'] ?? '' ),
+			'organization_5'  => sanitize_text_field( $row['organization_5'] ?? '' ),
 			'job_type'        => ! empty( $row['job_type'] ) ? absint( $row['job_type'] ) : null,
 			'position'        => ! empty( $row['position'] ) ? absint( $row['position'] ) : null,
 			'employment_type' => ! empty( $row['employment_type'] ) ? absint( $row['employment_type'] ) : null,
@@ -545,7 +585,7 @@ class CsvImporter {
 		$table  = $wpdb->prefix . \OSQ\Database\Schema::EMPLOYEES;
 		$update = array( 'updated_at' => current_time( 'mysql' ) );
 
-		$text_fields = array( 'name', 'email', 'organization_1', 'organization_2', 'organization_3' );
+		$text_fields = array( 'name', 'email', 'organization_1', 'organization_2', 'organization_3', 'organization_4', 'organization_5' );
 		foreach ( $text_fields as $field ) {
 			if ( ! empty( $row[ $field ] ) ) {
 				$update[ $field ] = 'email' === $field

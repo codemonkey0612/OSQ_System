@@ -124,44 +124,47 @@ class UnifiedDashboardHandler {
 		wp_enqueue_style( 'osq-admin-css', OSQ_PLUGIN_URL . 'assets/css/osq-admin.css', array(), OSQ_VERSION );
 
 		// Chart.js for group analysis.
-		wp_enqueue_script( 'chart-js', 'https://cdn.jsdelivr.net/npm/chart.js', array(), '3.7.0', true );
+		wp_enqueue_script( 'chart-js', 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js', array(), '3.9.1', true );
+
+		// PDF print-window handler (org report + employee PDFs).
+		wp_enqueue_script( 'osq-pdf-js', OSQ_PLUGIN_URL . 'assets/js/osq-pdf.js', array( 'jquery' ), OSQ_VERSION, true );
 
 		wp_enqueue_script( 'osq-admin-js', OSQ_PLUGIN_URL . 'assets/js/osq-admin.js', array( 'jquery', 'chart-js' ), OSQ_VERSION, true );
 		wp_localize_script( 'osq-admin-js', 'osq_admin_vars', array(
 			'ajax_url' => admin_url( 'admin-ajax.php' ),
 			'nonce'    => wp_create_nonce( 'osq_admin_nonce' ),
 			'i18n'     => array(
-				'completed'           => esc_html__( '完了 (Completed)', 'osq-stress-check' ),
-				'pending'             => esc_html__( '未完了 (Pending)', 'osq-stress-check' ),
-				'no_employees'        => esc_html__( '従業員が見つかりません (No employees found.)', 'osq-stress-check' ),
-				'loading'             => esc_html__( '従業員データを読み込み中... (Loading employee data...)', 'osq-stress-check' ),
-				'selected_file'       => esc_html__( '選択されたファイル (Selected file)', 'osq-stress-check' ),
-				'high_stress'         => esc_html__( 'High Stress Ratio', 'osq-stress-check' ),
-				'scale_scores'        => esc_html__( 'Scale Average Scores', 'osq-stress-check' ),
-				'analysis_loading'    => esc_html__( 'Loading group analysis...', 'osq-stress-check' ),
-				'analysis_empty'      => esc_html__( 'No groups meet the minimum size requirement.', 'osq-stress-check' ),
-				'participation_empty' => esc_html__( 'No participation data found.', 'osq-stress-check' ),
-				'export_failed'       => esc_html__( 'CSV export failed.', 'osq-stress-check' ),
-				'export_ready'        => esc_html__( 'Download CSV', 'osq-stress-check' ),
-				'csv_uploading'       => esc_html__( 'CSVをアップロード中... (Uploading CSV...)', 'osq-stress-check' ),
-				'csv_import_complete' => esc_html__( 'CSVインポートが完了しました (CSV import completed.)', 'osq-stress-check' ),
-				'csv_import_failed'   => esc_html__( 'CSVインポートに失敗しました (CSV import failed.)', 'osq-stress-check' ),
-				'csv_import_success'  => esc_html__( 'インポート済み (Imported)', 'osq-stress-check' ),
-				'csv_import_skipped'  => esc_html__( 'スキップされました (Skipped)', 'osq-stress-check' ),
-				'csv_import_errors'   => esc_html__( 'エラー (Errors)', 'osq-stress-check' ),
-				'csv_error_details'   => esc_html__( 'エラー詳細: (Errors:)', 'osq-stress-check' ),
-				'csv_error_more'      => esc_html__( 'and', 'osq-stress-check' ),
-				'csv_error_more_items' => esc_html__( 'more', 'osq-stress-check' ),
-				'csv_no_imports'      => esc_html__( 'No imported users.', 'osq-stress-check' ),
-				'csv_delete'          => esc_html__( '削除 (Delete)', 'osq-stress-check' ),
-				'csv_delete_failed'   => esc_html__( '削除に失敗しました (Delete failed.)', 'osq-stress-check' ),
-				'csv_delete_confirm'  => esc_html__( 'この従業員を削除しますか？ (Delete this imported user?)', 'osq-stress-check' ),
-				'org_labels'          => array(),
-				'dash_overview'       => esc_html__( 'Overview', 'osq-stress-check' ),
-				'dash_employees'      => esc_html__( 'Employees', 'osq-stress-check' ),
-				'dash_import'         => esc_html__( 'CSV Import', 'osq-stress-check' ),
-				'dash_analysis'       => esc_html__( 'Group Analysis', 'osq-stress-check' ),
-				'dash_settings'       => esc_html__( 'Settings', 'osq-stress-check' ),
+				'completed'           => esc_html__( '受検済', 'osq-stress-check' ),
+				'pending'             => esc_html__( '未受検', 'osq-stress-check' ),
+				'no_employees'        => esc_html__( '従業員が見つかりません', 'osq-stress-check' ),
+				'loading'             => esc_html__( '従業員データを読み込み中...', 'osq-stress-check' ),
+				'selected_file'       => esc_html__( '選択されたファイル', 'osq-stress-check' ),
+				'high_stress'         => esc_html__( '高ストレス割合', 'osq-stress-check' ),
+				'scale_scores'        => esc_html__( '尺度別平均スコア', 'osq-stress-check' ),
+				'analysis_loading'    => esc_html__( 'グループ分析を読み込み中...', 'osq-stress-check' ),
+				'analysis_empty'      => esc_html__( '最小人数を満たすグループがありません。', 'osq-stress-check' ),
+				'participation_empty' => esc_html__( '受検率データがありません。', 'osq-stress-check' ),
+				'export_failed'       => esc_html__( 'CSVのエクスポートに失敗しました。', 'osq-stress-check' ),
+				'export_ready'        => esc_html__( 'CSVダウンロード', 'osq-stress-check' ),
+				'csv_uploading'       => esc_html__( 'CSVをアップロード中...', 'osq-stress-check' ),
+				'csv_import_complete' => esc_html__( 'CSVインポートが完了しました', 'osq-stress-check' ),
+				'csv_import_failed'   => esc_html__( 'CSVインポートに失敗しました', 'osq-stress-check' ),
+				'csv_import_success'  => esc_html__( 'インポート済み', 'osq-stress-check' ),
+				'csv_import_skipped'  => esc_html__( 'スキップ', 'osq-stress-check' ),
+				'csv_import_errors'   => esc_html__( 'エラー', 'osq-stress-check' ),
+				'csv_error_details'   => esc_html__( 'エラー詳細：', 'osq-stress-check' ),
+				'csv_error_more'      => esc_html__( 'および', 'osq-stress-check' ),
+				'csv_error_more_items' => esc_html__( '件', 'osq-stress-check' ),
+				'csv_no_imports'      => esc_html__( 'インポート済みユーザーはいません。', 'osq-stress-check' ),
+				'csv_delete'          => esc_html__( '削除', 'osq-stress-check' ),
+				'csv_delete_failed'   => esc_html__( '削除に失敗しました', 'osq-stress-check' ),
+				'csv_delete_confirm'  => esc_html__( 'この従業員を削除しますか？', 'osq-stress-check' ),
+				'org_labels'          => \OSQ\Services\OrgLabelService::get_all_labels( \OSQ\Database\DbManager::current_company_id() ),
+				'dash_overview'       => esc_html__( '概要', 'osq-stress-check' ),
+				'dash_employees'      => esc_html__( '従業員管理', 'osq-stress-check' ),
+				'dash_import'         => esc_html__( 'CSVインポート', 'osq-stress-check' ),
+				'dash_analysis'       => esc_html__( '集計・分析', 'osq-stress-check' ),
+				'dash_settings'       => esc_html__( '設定', 'osq-stress-check' ),
 			),
 		) );
 
@@ -222,7 +225,7 @@ class UnifiedDashboardHandler {
 				'label_network_error_apply_filters' => esc_html__( 'Network error while applying filters', 'osq-stress-check' ),
 				'label_server_error_try_again'      => esc_html__( 'A server error occurred. Please try again.', 'osq-stress-check' ),
 				'label_updated_followup_statuses'   => esc_html__( 'Updated follow-up statuses', 'osq-stress-check' ),
-				'org_labels'                        => array(),
+				'org_labels'                        => \OSQ\Services\OrgLabelService::get_all_labels( \OSQ\Database\DbManager::current_company_id() ),
 			),
 		) );
 

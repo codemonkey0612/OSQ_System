@@ -38,7 +38,8 @@ EOT;
 	 * @return void
 	 */
 	public function init() {
-		add_action( 'admin_post_osq_save_ai_prompt', array( $this, 'handle_save' ) );
+		add_action( 'admin_post_osq_save_ai_prompt',     array( $this, 'handle_save' ) );
+		add_action( 'admin_post_osq_save_org_ai_prompt', array( $this, 'handle_org_save' ) );
 	}
 
 	/**
@@ -65,8 +66,13 @@ EOT;
 			echo '</p></div>';
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'industry';
+
 		if ( $industry >= 1 && $industry <= 15 ) {
 			$this->render_edit( $industry );
+		} elseif ( 'org' === $tab ) {
+			$this->render_org_edit();
 		} else {
 			$this->render_list();
 		}
@@ -79,6 +85,67 @@ EOT;
 	 *
 	 * @return void
 	 */
+	/**
+	 * Render the edit form for the org-level AI prompt.
+	 *
+	 * @return void
+	 */
+	public function render_org_edit() {
+		$current     = \OSQ\AI\PromptManager::get_org_prompt();
+		$default     = \OSQ\AI\PromptManager::get_default_org_prompt();
+		$list_url    = admin_url( 'admin.php?page=' . AdminMenu::MENU_SLUG . '-ai-prompts' );
+		?>
+		<h2 style="margin-top:12px;">組織分析用AIプロンプト</h2>
+		<p class="description" style="margin-bottom:16px;">
+			集計・分析タブで組織別AIアドバイスを生成する際に使用するシステムプロンプトです。<br>
+			グループ名・集計軸・企業名は自動的に付加されます。このフィールドには「思想・ルール・出力の方向性」を記述してください。
+		</p>
+
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+			<?php wp_nonce_field( 'osq_save_org_ai_prompt', 'osq_org_nonce' ); ?>
+			<input type="hidden" name="action" value="osq_save_org_ai_prompt" />
+
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row">
+						<label for="osq_org_system_prompt">組織分析プロンプト</label>
+					</th>
+					<td>
+						<textarea
+							id="osq_org_system_prompt"
+							name="org_system_prompt"
+							rows="30"
+							class="large-text"
+							style="font-family: monospace; font-size: 13px;"
+						><?php echo esc_textarea( $current ); ?></textarea>
+						<p class="description">
+							変更を保存すると、次回以降の組織AIアドバイス生成に即時反映されます。既存のキャッシュには影響しません（再生成時に新プロンプトが使用されます）。
+						</p>
+					</td>
+				</tr>
+			</table>
+
+			<p>
+				<?php submit_button( '保存', 'primary', 'submit', false ); ?>
+				&nbsp;
+				<a href="<?php echo esc_url( $list_url ); ?>" class="button">← 一覧に戻る</a>
+				&nbsp;
+				<button type="button" class="button" id="osq-reset-org-default">デフォルトに戻す</button>
+			</p>
+		</form>
+
+		<script>
+		(function() {
+			var defaultPrompt = <?php echo wp_json_encode( $default ); ?>;
+			document.getElementById('osq-reset-org-default').addEventListener('click', function() {
+				if ( ! confirm('デフォルト値に戻しますか？保存するまで変更は確定しません。') ) return;
+				document.getElementById('osq_org_system_prompt').value = defaultPrompt;
+			});
+		})();
+		</script>
+		<?php
+	}
+
 	public function render_list() {
 		// Build a lookup of DB rows keyed by industry_type.
 		$db_rows = \OSQ\AI\PromptManager::get_all_prompts();
@@ -89,8 +156,16 @@ EOT;
 
 		$defaults     = \OSQ\AI\PromptManager::get_default_industry_prompts();
 		$page_url     = admin_url( 'admin.php?page=' . AdminMenu::MENU_SLUG . '-ai-prompts' );
+		$org_edit_url = add_query_arg( 'tab', 'org', $page_url );
 		?>
 		<p><?php esc_html_e( 'プロンプトはOpenAI APIに送信され、AIアドバイスの文体・視点を制御します。「編集」をクリックして各業種のプロンプトを編集できます。', 'osq-stress-check' ); ?></p>
+
+		<div style="background:#f0f7ff;border:1px solid #b3d4f5;border-radius:4px;padding:14px 18px;margin:16px 0;">
+			<strong>📊 組織分析用AIプロンプト（フェーズ4）</strong><br>
+			<span style="color:#555;font-size:13px;">集計・分析タブの組織別AIアドバイス生成に使用するプロンプトです。wellancの思想・安全ルールが組み込まれています。</span>
+			<br><br>
+			<a href="<?php echo esc_url( $org_edit_url ); ?>" class="button button-primary">組織分析プロンプトを編集</a>
+		</div>
 
 		<table class="wp-list-table widefat fixed striped" style="margin-top: 16px;">
 			<thead>
@@ -273,6 +348,37 @@ EOT;
 			array(
 				'page'    => AdminMenu::MENU_SLUG . '-ai-prompts',
 				'saved'   => '1',
+			),
+			admin_url( 'admin.php' )
+		);
+
+		wp_safe_redirect( $redirect );
+		exit;
+	}
+
+	/**
+	 * Handle save for the org-level AI prompt.
+	 *
+	 * @return void
+	 */
+	public function handle_org_save() {
+		if ( ! current_user_can( 'osq_system_config' ) ) {
+			wp_die( esc_html__( 'Access denied.', 'osq-stress-check' ) );
+		}
+
+		check_admin_referer( 'osq_save_org_ai_prompt', 'osq_org_nonce' );
+
+		$prompt = isset( $_POST['org_system_prompt'] )
+			? sanitize_textarea_field( wp_unslash( $_POST['org_system_prompt'] ) )
+			: '';
+
+		\OSQ\AI\PromptManager::update_org_prompt( $prompt );
+
+		$redirect = add_query_arg(
+			array(
+				'page'  => AdminMenu::MENU_SLUG . '-ai-prompts',
+				'tab'   => 'org',
+				'saved' => '1',
 			),
 			admin_url( 'admin.php' )
 		);

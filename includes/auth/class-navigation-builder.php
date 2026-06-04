@@ -36,7 +36,7 @@ class NavigationBuilder {
 			|| CapabilityMatrix::user_has( CapabilityMatrix::VIEW_OWN_RESULTS ) ) {
 			$items[] = array(
 				'key'        => 'my_check',
-				'label'      => __( 'My Stress Check', 'osq-stress-check' ),
+				'label'      => __( 'マイストレスチェック', 'osq-stress-check' ),
 				'icon'       => 'dashicons-clipboard',
 				'url'        => $dash . '?panel=my-check',
 				'capability' => CapabilityMatrix::VIEW_OWN_RESULTS,
@@ -47,7 +47,7 @@ class NavigationBuilder {
 		if ( CapabilityMatrix::user_has( CapabilityMatrix::VIEW_INDIVIDUAL_RESPONSES ) ) {
 			$items[] = array(
 				'key'        => 'individual',
-				'label'      => __( 'Individual Responses', 'osq-stress-check' ),
+				'label'      => __( '個人回答閲覧', 'osq-stress-check' ),
 				'icon'       => 'dashicons-id-alt',
 				'url'        => $dash . '?panel=responses',
 				'capability' => CapabilityMatrix::VIEW_INDIVIDUAL_RESPONSES,
@@ -58,7 +58,7 @@ class NavigationBuilder {
 		if ( CapabilityMatrix::user_has( CapabilityMatrix::MANAGE_EMPLOYEES ) ) {
 			$items[] = array(
 				'key'        => 'manage',
-				'label'      => __( 'Manage Employees', 'osq-stress-check' ),
+				'label'      => __( '従業員管理', 'osq-stress-check' ),
 				'icon'       => 'dashicons-groups',
 				'url'        => $dash . '?panel=employees',
 				'capability' => CapabilityMatrix::MANAGE_EMPLOYEES,
@@ -69,7 +69,7 @@ class NavigationBuilder {
 		if ( CapabilityMatrix::user_has( CapabilityMatrix::VIEW_GROUP_ANALYSIS ) ) {
 			$items[] = array(
 				'key'        => 'analysis',
-				'label'      => __( 'Group Analysis', 'osq-stress-check' ),
+				'label'      => __( '集計・分析', 'osq-stress-check' ),
 				'icon'       => 'dashicons-chart-bar',
 				'url'        => $dash . '?panel=analysis',
 				'capability' => CapabilityMatrix::VIEW_GROUP_ANALYSIS,
@@ -80,7 +80,7 @@ class NavigationBuilder {
 		if ( CapabilityMatrix::user_has( CapabilityMatrix::SYSTEM_CONFIG ) ) {
 			$items[] = array(
 				'key'        => 'settings',
-				'label'      => __( 'Settings', 'osq-stress-check' ),
+				'label'      => __( '設定', 'osq-stress-check' ),
 				'icon'       => 'dashicons-admin-settings',
 				'url'        => $dash . '?panel=settings',
 				'capability' => CapabilityMatrix::SYSTEM_CONFIG,
@@ -91,7 +91,7 @@ class NavigationBuilder {
 		if ( CapabilityMatrix::user_has( CapabilityMatrix::MANAGE_ALL_COMPANIES ) ) {
 			$items[] = array(
 				'key'        => 'companies',
-				'label'      => __( 'All Companies (wellanc)', 'osq-stress-check' ),
+				'label'      => __( '企業管理', 'osq-stress-check' ),
 				'icon'       => 'dashicons-building',
 				'url'        => home_url( '/osq-companies/' ),
 				'capability' => CapabilityMatrix::MANAGE_ALL_COMPANIES,
@@ -114,7 +114,7 @@ class NavigationBuilder {
 		?>
 		<aside class="osq-admin-sidebar osq-unified-sidebar">
 			<div class="osq-sidebar-header">
-				<span class="osq-logo"><?php esc_html_e( 'OSQ Portal', 'osq-stress-check' ); ?></span>
+				<span class="osq-logo"><?php esc_html_e( 'OSQポータル', 'osq-stress-check' ); ?></span>
 			</div>
 			<nav class="osq-admin-nav">
 				<ul>
@@ -134,7 +134,7 @@ class NavigationBuilder {
 				</div>
 				<a href="<?php echo esc_url( wp_logout_url( $logout_to ) ); ?>" style="color:#fca5a5;font-size:13px;text-decoration:none;">
 					<span class="dashicons dashicons-exit" style="font-size:16px;"></span>
-					<?php esc_html_e( 'Logout', 'osq-stress-check' ); ?>
+					<?php esc_html_e( 'ログアウト', 'osq-stress-check' ); ?>
 				</a>
 			</div>
 		</aside>

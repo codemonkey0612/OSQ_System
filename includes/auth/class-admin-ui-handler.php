@@ -51,6 +51,8 @@ class AdminUiHandler {
 		add_action( 'wp_ajax_osq_admin_get_employees', array( $this, 'ajax_get_employees' ) );
 		add_action( 'wp_ajax_osq_admin_get_group_analysis', array( $this, 'ajax_get_group_analysis' ) );
 		add_action( 'wp_ajax_osq_admin_export_group_analysis_csv', array( $this, 'ajax_export_group_analysis_csv' ) );
+		add_action( 'wp_ajax_osq_admin_get_org_report_data', array( $this, 'ajax_get_org_report_data' ) );
+		add_action( 'wp_ajax_osq_admin_export_non_respondents', array( $this, 'ajax_export_non_respondents' ) );
 		add_action( 'wp_ajax_osq_admin_import_csv', array( $this, 'ajax_import_csv' ) );
 		add_action( 'wp_ajax_osq_admin_get_imported_users', array( $this, 'ajax_get_imported_users' ) );
 		add_action( 'wp_ajax_osq_admin_delete_imported_user', array( $this, 'ajax_delete_imported_user' ) );
@@ -115,13 +117,19 @@ class AdminUiHandler {
 		}
 
 		global $wpdb;
-		$db = \OSQ\Plugin::get_instance()->db();
-		$emp_table = $wpdb->prefix . \OSQ\Database\Schema::EMPLOYEES;
-		$res_table = $wpdb->prefix . \OSQ\Database\Schema::RESPONSES;
+		$emp_table  = $wpdb->prefix . \OSQ\Database\Schema::EMPLOYEES;
+		$res_table  = $wpdb->prefix . \OSQ\Database\Schema::RESPONSES;
+		$company_id = \OSQ\Database\DbManager::current_company_id();
 
-		$total_employees = $wpdb->get_var( "SELECT COUNT(*) FROM {$emp_table}" );
-		$total_responses = $wpdb->get_var( "SELECT COUNT(*) FROM {$res_table} WHERE is_complete = 1" );
-		
+		$total_employees = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT COUNT(*) FROM {$emp_table} WHERE company_id = %d",
+			$company_id
+		) );
+		$total_responses = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT COUNT(*) FROM {$res_table} WHERE is_complete = 1 AND company_id = %d",
+			$company_id
+		) );
+
 		$completion_rate = $total_employees > 0 ? round( ( $total_responses / $total_employees ) * 100, 1 ) : 0;
 		$pending = $total_employees - $total_responses;
 
@@ -143,43 +151,43 @@ class AdminUiHandler {
 		}
 
 		global $wpdb;
-		$emp_table = $wpdb->prefix . \OSQ\Database\Schema::EMPLOYEES;
-		$res_table = $wpdb->prefix . \OSQ\Database\Schema::RESPONSES;
+		$emp_table  = $wpdb->prefix . \OSQ\Database\Schema::EMPLOYEES;
+		$res_table  = $wpdb->prefix . \OSQ\Database\Schema::RESPONSES;
+		$company_id = \OSQ\Database\DbManager::current_company_id();
 
 		$status_filter = isset( $_GET['status'] ) ? sanitize_key( wp_unslash( $_GET['status'] ) ) : 'all';
-		$where_clause = '';
+
+		$where_parts = array( 'e.company_id = %d' );
+		$values      = array( $company_id );
 
 		if ( 'completed' === $status_filter ) {
-			$where_clause = 'WHERE r.is_complete = 1';
+			$where_parts[] = 'r.is_complete = 1';
 		} elseif ( 'pending' === $status_filter ) {
-			$where_clause = 'WHERE ( r.is_complete IS NULL OR r.is_complete = 0 )';
+			$where_parts[] = '( r.is_complete IS NULL OR r.is_complete = 0 )';
 		}
 
-		// Ensure UTF-8 encoding for Japanese text
-		$wpdb->query("SET NAMES utf8mb4");
+		$where_sql = 'WHERE ' . implode( ' AND ', $where_parts );
 
-		$query = "
-			SELECT e.employee_id, e.employee_number, e.name, e.organization_1, e.organization_2, 
-			       r.is_complete, r.completed_at
-			FROM {$emp_table} e
-			LEFT JOIN {$res_table} r ON e.employee_id = r.employee_id
-			{$where_clause}
-			ORDER BY e.employee_id ASC
-			LIMIT 100
-		";
+		$query = $wpdb->prepare(
+			"SELECT e.employee_id, e.employee_number, e.name, e.organization_1, e.organization_2, e.organization_3, e.organization_4, e.organization_5,
+			        r.is_complete, r.completed_at
+			 FROM {$emp_table} e
+			 LEFT JOIN {$res_table} r ON e.employee_id = r.employee_id
+			 {$where_sql}
+			 ORDER BY e.employee_id ASC
+			 LIMIT 100",
+			$values
+		);
 
 		$employees = $wpdb->get_results( $query );
-		
-		// Debug logging for Japanese text display
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && ! empty( $employees ) ) {
-			error_log( 'OSQ Admin: First employee name: ' . $employees[0]->name . ' (Length: ' . strlen( $employees[0]->name ) . ', Encoding detected: ' . mb_detect_encoding( $employees[0]->name, 'UTF-8, SJIS, EUC-JP', true ) . ')' );
-		}
-		
-		// Ensure proper encoding for Japanese text
+
 		foreach ( $employees as &$employee ) {
 			$employee->name = htmlspecialchars( $employee->name, ENT_QUOTES, 'UTF-8' );
 			$employee->organization_1 = !empty( $employee->organization_1 ) ? htmlspecialchars( $employee->organization_1, ENT_QUOTES, 'UTF-8' ) : '';
 			$employee->organization_2 = !empty( $employee->organization_2 ) ? htmlspecialchars( $employee->organization_2, ENT_QUOTES, 'UTF-8' ) : '';
+			$employee->organization_3 = !empty( $employee->organization_3 ) ? htmlspecialchars( $employee->organization_3, ENT_QUOTES, 'UTF-8' ) : '';
+			$employee->organization_4 = !empty( $employee->organization_4 ) ? htmlspecialchars( $employee->organization_4, ENT_QUOTES, 'UTF-8' ) : '';
+			$employee->organization_5 = !empty( $employee->organization_5 ) ? htmlspecialchars( $employee->organization_5, ENT_QUOTES, 'UTF-8' ) : '';
 			$employee->completed_at = !empty( $employee->completed_at ) ? date_i18n( get_option( 'date_format' ), strtotime( $employee->completed_at ) ) : '';
 		}
 
@@ -198,19 +206,55 @@ class AdminUiHandler {
 			wp_send_json_error( 'unauthorized' );
 		}
 
-		$org_level = isset( $_GET['org_level'] ) ? sanitize_key( wp_unslash( $_GET['org_level'] ) ) : 'organization_1';
-		$org_level = $this->normalize_org_level( $org_level );
+		$org_level    = isset( $_GET['org_level'] ) ? sanitize_key( wp_unslash( $_GET['org_level'] ) ) : 'organization_1';
+		$org_level    = $this->normalize_org_level( $org_level );
+		$exclude_orgs = array();
+		if ( ! empty( $_GET['exclude_orgs'] ) ) {
+			$exclude_orgs = array_filter( array_map( 'sanitize_text_field', explode( ',', wp_unslash( $_GET['exclude_orgs'] ) ) ) );
+		}
+		$min_group_size = isset( $_GET['min_group_size'] ) && (int) $_GET['min_group_size'] >= 1
+			? (int) $_GET['min_group_size']
+			: 0;
+
+		// Resolve the same effective threshold GroupAnalyzer will use, so participation
+		// table and analysis table are always in sync.
+		$effective_threshold = $this->resolve_effective_threshold( $min_group_size );
 
 		$analyzer = new \OSQ\Analysis\GroupAnalyzer();
-		$groups = $this->get_distinct_org_values( $org_level );
+		$groups   = $this->get_distinct_org_values( $org_level );
 
-		$analysis_rows = array();
+		$analysis_rows      = array();
 		$participation_rows = array();
 
 		foreach ( $groups as $group_value ) {
-			$filter = array( $org_level => $group_value );
+			if ( in_array( $group_value, $exclude_orgs, true ) ) {
+				continue;
+			}
+			$filter = array( $org_level => $group_value, 'axis' => $org_level );
+			if ( $min_group_size ) {
+				$filter['min_group_size'] = $min_group_size;
+			}
+			if ( ! empty( $exclude_orgs ) ) {
+				$filter['exclude_orgs'] = $exclude_orgs;
+			}
 			$safe_label = sanitize_text_field( $group_value );
 
+			$participation = $this->get_completion_counts( $org_level, $group_value );
+
+			// Hide groups whose total headcount is below the threshold — they are too
+			// small to be meaningful for either tracking or analysis.
+			if ( (int) $participation['total'] < $effective_threshold ) {
+				continue;
+			}
+
+			$participation_rows[] = array(
+				'group_label'     => $safe_label,
+				'total'           => (int) $participation['total'],
+				'completed'       => (int) $participation['completed'],
+				'completion_rate' => (float) $participation['completion_rate'],
+			);
+
+			// Analysis table only shows groups with enough *completed* responses (privacy rule).
 			$analysis = $analyzer->analyze( $filter );
 			if ( null !== $analysis ) {
 				$analysis_rows[] = array(
@@ -222,21 +266,13 @@ class AdminUiHandler {
 					'scale_averages'    => $analysis['scale_averages'],
 				);
 			}
-
-			$participation = $this->get_completion_counts( $org_level, $group_value );
-			$participation_rows[] = array(
-				'group_label'     => $safe_label,
-				'total'           => (int) $participation['total'],
-				'completed'       => (int) $participation['completed'],
-				'completion_rate' => (float) $participation['completion_rate'],
-			);
 		}
 
 		wp_send_json_success( array(
 			'org_level'      => $org_level,
 			'analysis'       => $analysis_rows,
 			'participation'  => $participation_rows,
-			'min_group_size' => \OSQ\Analysis\GroupAnalyzer::MIN_GROUP_SIZE,
+			'min_group_size' => $effective_threshold,
 		) );
 	}
 
@@ -253,6 +289,13 @@ class AdminUiHandler {
 		$org_level = isset( $_GET['org_level'] ) ? sanitize_key( wp_unslash( $_GET['org_level'] ) ) : 'organization_1';
 		$org_level = $this->normalize_org_level( $org_level );
 
+		$exclude_orgs   = array();
+		if ( ! empty( $_GET['exclude_orgs'] ) ) {
+			$raw = sanitize_text_field( wp_unslash( $_GET['exclude_orgs'] ) );
+			$exclude_orgs = array_filter( array_map( 'trim', explode( ',', $raw ) ) );
+		}
+		$min_group_size = isset( $_GET['min_group_size'] ) ? (int) $_GET['min_group_size'] : 0;
+
 		$analyzer = new \OSQ\Analysis\GroupAnalyzer();
 		$groups = $this->get_distinct_org_values( $org_level );
 		$scale_labels = $this->get_scale_labels();
@@ -268,8 +311,11 @@ class AdminUiHandler {
 			wp_die( esc_html__( 'Failed to export CSV.', 'osq-stress-check' ) );
 		}
 
+		$org_level_num = (int) str_replace( 'organization_', '', $org_level );
+		$group_label   = \OSQ\Services\OrgLabelService::get_label( \OSQ\Database\DbManager::current_company_id(), $org_level_num );
+
 		$header = array(
-			__( 'Group', 'osq-stress-check' ),
+			$group_label,
 			__( 'Respondents', 'osq-stress-check' ),
 			__( 'High Stress Count', 'osq-stress-check' ),
 			__( 'High Stress Ratio (%)', 'osq-stress-check' ),
@@ -283,7 +329,9 @@ class AdminUiHandler {
 		fputcsv( $output, $header );
 
 		foreach ( $groups as $group_value ) {
-			$filter = array( $org_level => $group_value );
+			$filter = array( $org_level => $group_value, 'axis' => $org_level );
+			if ( ! empty( $exclude_orgs ) )   { $filter['exclude_orgs']   = $exclude_orgs; }
+			if ( $min_group_size >= 1 )        { $filter['min_group_size'] = $min_group_size; }
 			$analysis = $analyzer->analyze( $filter );
 			if ( null === $analysis ) {
 				continue;
@@ -302,6 +350,154 @@ class AdminUiHandler {
 			}
 
 			fputcsv( $output, $row );
+		}
+
+		fclose( $output );
+		exit;
+	}
+
+	/**
+	 * AJAX: Get full org-analysis report data for PDF output.
+	 * Returns rendered HTML (from org-report-pdf.php) + filename.
+	 */
+	public function ajax_get_org_report_data() {
+		check_ajax_referer( 'osq_admin_nonce', 'nonce' );
+
+		if ( ! $this->is_osq_admin( get_current_user_id() ) ) {
+			wp_send_json_error( 'unauthorized' );
+		}
+
+		$org_level = isset( $_GET['org_level'] ) ? sanitize_key( wp_unslash( $_GET['org_level'] ) ) : 'organization_1';
+		$org_level = $this->normalize_org_level( $org_level );
+
+		$exclude_orgs = array();
+		if ( ! empty( $_GET['exclude_orgs'] ) ) {
+			$exclude_orgs = array_filter( array_map( 'sanitize_text_field', explode( ',', wp_unslash( $_GET['exclude_orgs'] ) ) ) );
+		}
+		$min_group_size = isset( $_GET['min_group_size'] ) && (int) $_GET['min_group_size'] >= 1
+			? (int) $_GET['min_group_size']
+			: 0;
+
+		$analyzer = new \OSQ\Analysis\GroupAnalyzer();
+		$groups   = $this->get_distinct_org_values( $org_level );
+
+		$analysis_rows = array();
+		foreach ( $groups as $group_value ) {
+			if ( in_array( $group_value, $exclude_orgs, true ) ) {
+				continue;
+			}
+			$filter = array( $org_level => $group_value, 'axis' => $org_level );
+			if ( $min_group_size ) { $filter['min_group_size'] = $min_group_size; }
+			if ( ! empty( $exclude_orgs ) ) { $filter['exclude_orgs'] = $exclude_orgs; }
+
+			$result = $analyzer->analyze( $filter );
+			if ( null !== $result ) {
+				$analysis_rows[] = array(
+					'group_label'       => sanitize_text_field( $group_value ),
+					'respondent_count'  => (int) $result['respondent_count'],
+					'high_stress_count' => (int) $result['high_stress_count'],
+					'high_stress_ratio' => (float) $result['high_stress_ratio'],
+					'scale_averages'    => $result['scale_averages'],
+				);
+			}
+		}
+
+		$chart_gen = new \OSQ\Analysis\ChartGenerator();
+		$bar_chart = $chart_gen->get_bar_chart_data( $org_level );
+
+		$company_id  = \OSQ\Database\DbManager::current_company_id();
+		$org_level_n = (int) str_replace( 'organization_', '', $org_level );
+		$axis_label  = \OSQ\Services\OrgLabelService::get_label( $company_id, $org_level_n );
+
+		global $wpdb;
+		$company_name = $wpdb->get_var( $wpdb->prepare(
+			"SELECT company_name FROM {$wpdb->prefix}osq_companies WHERE company_id = %d",
+			$company_id
+		) ) ?: get_bloginfo( 'name' );
+
+		$report_date = date_i18n( 'Y年m月d日' );
+		$filename    = sprintf( 'osq-org-report-%s-%s', $org_level, gmdate( 'Ymd' ) );
+
+		// Render template to string.
+		ob_start();
+		include OSQ_PLUGIN_DIR . 'templates/analysis/org-report-pdf.php';
+		$html = ob_get_clean();
+
+		wp_send_json_success( array(
+			'html'     => $html,
+			'filename' => $filename,
+		) );
+	}
+
+	/**
+	 * AJAX: Export non-respondents as UTF-8 BOM CSV (opens correctly in Japanese Excel).
+	 */
+	public function ajax_export_non_respondents() {
+		check_ajax_referer( 'osq_admin_nonce', 'nonce' );
+
+		if ( ! $this->is_osq_admin( get_current_user_id() ) ) {
+			wp_send_json_error( 'unauthorized' );
+		}
+
+		global $wpdb;
+		$emp_table  = $wpdb->prefix . \OSQ\Database\Schema::EMPLOYEES;
+		$res_table  = $wpdb->prefix . \OSQ\Database\Schema::RESPONSES;
+		$company_id = \OSQ\Database\DbManager::current_company_id();
+
+		$where  = array( 'e.company_id = %d' );
+		$values = array( $company_id );
+
+		// Optional org filters (same params as employee list).
+		foreach ( array( 'organization_1', 'organization_2', 'organization_3', 'organization_4', 'organization_5' ) as $col ) {
+			if ( ! empty( $_GET[ $col ] ) ) {
+				$where[]  = "e.{$col} = %s";
+				$values[] = sanitize_text_field( wp_unslash( $_GET[ $col ] ) );
+			}
+		}
+
+		$where_sql = implode( ' AND ', $where );
+
+		$sql = $wpdb->prepare(
+			"SELECT e.employee_id, e.name, e.email,
+			        e.organization_1, e.organization_2, e.organization_3, e.organization_4, e.organization_5
+			 FROM {$emp_table} e
+			 LEFT JOIN {$res_table} r ON r.employee_id = e.employee_id AND r.is_complete = 1
+			 WHERE {$where_sql} AND r.employee_id IS NULL
+			 ORDER BY e.organization_1, e.organization_2, e.name",
+			...$values
+		);
+
+		$rows = $wpdb->get_results( $sql );
+
+		$org_labels = \OSQ\Services\OrgLabelService::get_all_labels( $company_id );
+
+		$filename = sprintf( 'osq-non-respondents-%s.csv', gmdate( 'Ymd' ) );
+
+		nocache_headers();
+		header( 'Content-Type: text/csv; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+
+		$output = fopen( 'php://output', 'w' );
+		// UTF-8 BOM — required for Excel on Japanese Windows.
+		fwrite( $output, "\xEF\xBB\xBF" );
+
+		$header = array( '社員番号', '氏名', 'メールアドレス' );
+		for ( $n = 1; $n <= 5; $n++ ) {
+			$header[] = $org_labels[ $n ] ?? ( '組織' . $n );
+		}
+		fputcsv( $output, $header );
+
+		foreach ( $rows as $row ) {
+			fputcsv( $output, array(
+				$row->employee_id,
+				$row->name,
+				$row->email,
+				$row->organization_1 ?? '',
+				$row->organization_2 ?? '',
+				$row->organization_3 ?? '',
+				$row->organization_4 ?? '',
+				$row->organization_5 ?? '',
+			) );
 		}
 
 		fclose( $output );
@@ -339,6 +535,19 @@ class AdminUiHandler {
 			$settings['enable_group_analysis'] = (bool) intval( $_POST['enable_group_analysis'] );
 		} else {
 			$settings['enable_group_analysis'] = false;
+		}
+
+		// Save min_group_size to osq_companies for the current tenant.
+		if ( isset( $_POST['min_group_size'] ) ) {
+			$min_group = max( 1, min( 100, absint( $_POST['min_group_size'] ) ) );
+			global $wpdb;
+			$wpdb->update(
+				$wpdb->prefix . \OSQ\Database\Schema::COMPANIES,
+				array( 'min_group_size' => $min_group ),
+				array( 'company_id'    => \OSQ\Database\DbManager::current_company_id() )
+			);
+			// Flush the OrgLabelService cache so the new threshold is reflected immediately.
+			wp_cache_delete( 'osq_org_labels_' . \OSQ\Database\DbManager::current_company_id() );
 		}
 
 		// Save settings — update_option returns false if value is unchanged,
@@ -600,7 +809,7 @@ class AdminUiHandler {
 	 * @return string
 	 */
 	private function normalize_org_level( $org_level ) {
-		$allowed = array( 'organization_1', 'organization_2', 'organization_3' );
+		$allowed = array( 'organization_1', 'organization_2', 'organization_3', 'organization_4', 'organization_5' );
 		if ( ! in_array( $org_level, $allowed, true ) ) {
 			return 'organization_1';
 		}
@@ -615,11 +824,13 @@ class AdminUiHandler {
 	 */
 	private function get_distinct_org_values( $org_level ) {
 		global $wpdb;
-		$emp_table = $wpdb->prefix . \OSQ\Database\Schema::EMPLOYEES;
+		$emp_table  = $wpdb->prefix . \OSQ\Database\Schema::EMPLOYEES;
+		$company_id = \OSQ\Database\DbManager::current_company_id();
 
 		$orgs = $wpdb->get_col(
 			$wpdb->prepare(
-				"SELECT DISTINCT {$org_level} FROM {$emp_table} WHERE {$org_level} IS NOT NULL AND {$org_level} != %s ORDER BY {$org_level}",
+				"SELECT DISTINCT {$org_level} FROM {$emp_table} WHERE company_id = %d AND {$org_level} IS NOT NULL AND {$org_level} != %s ORDER BY {$org_level}",
+				$company_id,
 				''
 			)
 		);
@@ -637,11 +848,13 @@ class AdminUiHandler {
 	private function get_completion_counts( $org_level, $group_value ) {
 		global $wpdb;
 
-		$emp_table = $wpdb->prefix . \OSQ\Database\Schema::EMPLOYEES;
-		$res_table = $wpdb->prefix . \OSQ\Database\Schema::RESPONSES;
+		$emp_table  = $wpdb->prefix . \OSQ\Database\Schema::EMPLOYEES;
+		$res_table  = $wpdb->prefix . \OSQ\Database\Schema::RESPONSES;
+		$company_id = \OSQ\Database\DbManager::current_company_id();
 
 		$total_sql = $wpdb->prepare(
-			"SELECT COUNT(*) FROM {$emp_table} WHERE {$org_level} = %s",
+			"SELECT COUNT(*) FROM {$emp_table} WHERE company_id = %d AND {$org_level} = %s",
+			$company_id,
 			$group_value
 		);
 		$total = (int) $wpdb->get_var( $total_sql );
@@ -650,7 +863,8 @@ class AdminUiHandler {
 			"SELECT COUNT(DISTINCT r.employee_id)
 			 FROM {$res_table} r
 			 INNER JOIN {$emp_table} e ON r.employee_id = e.employee_id
-			 WHERE r.is_complete = 1 AND e.{$org_level} = %s",
+			 WHERE r.is_complete = 1 AND e.company_id = %d AND e.{$org_level} = %s",
+			$company_id,
 			$group_value
 		);
 		$completed = (int) $wpdb->get_var( $completed_sql );
@@ -662,6 +876,25 @@ class AdminUiHandler {
 			'completed'       => $completed,
 			'completion_rate' => $rate,
 		);
+	}
+
+	/**
+	 * Resolve the effective min-group threshold, matching GroupAnalyzer::get_min_group_size().
+	 * Priority: explicit override (>= 1) → per-tenant DB value → legal fallback constant.
+	 *
+	 * @param int $override User-supplied value, or 0 if not set.
+	 * @return int
+	 */
+	private function resolve_effective_threshold( $override ) {
+		if ( $override >= 1 ) {
+			return $override;
+		}
+		global $wpdb;
+		$val = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT min_group_size FROM {$wpdb->prefix}osq_companies WHERE company_id = %d",
+			\OSQ\Database\DbManager::current_company_id()
+		) );
+		return $val >= 1 ? $val : \OSQ\Analysis\GroupAnalyzer::MIN_GROUP_SIZE;
 	}
 
 	/**

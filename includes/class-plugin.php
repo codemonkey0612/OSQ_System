@@ -69,6 +69,8 @@ class Plugin {
 		( new Auth\EmployeeUiHandler() )->init();
 		( new Auth\AdminUiHandler() )->init();
 		( new Auth\OfficerUiHandler() )->init();
+		( new Auth\CompaniesUiHandler() )->init();
+		( new Auth\UnifiedDashboardHandler() )->init();
 		( new Auth\PortalRouter() )->init();
 
 		// Initialize questionnaire handler (AJAX endpoints).
@@ -141,7 +143,7 @@ class Plugin {
 		wp_enqueue_style( 'osq-admin-css', OSQ_PLUGIN_URL . 'assets/css/osq-admin.css', array(), OSQ_VERSION );
 		
 		// Load Chart.js for analysis.
-		wp_enqueue_script( 'chart-js', 'https://cdn.jsdelivr.net/npm/chart.js', array(), '3.7.0', true );
+		wp_enqueue_script( 'chart-js', 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js', array(), '3.9.1', true );
 		
 		wp_enqueue_script( 'osq-admin-js', OSQ_PLUGIN_URL . 'assets/js/osq-admin.js', array( 'jquery', 'chart-js' ), OSQ_VERSION, true );
 

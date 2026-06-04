@@ -28,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 		<div class="osq-login-header">
 			<h1><?php esc_html_e( 'OSQ Stress Check', 'osq-stress-check' ); ?></h1>
-			<p class="osq-subtitle"><?php esc_html_e( 'Employee Login', 'osq-stress-check' ); ?></p>
+			<p class="osq-subtitle"><?php esc_html_e( '従業員ログイン', 'osq-stress-check' ); ?></p>
 		</div>
 
 		<?php
@@ -40,7 +40,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<div class="osq-alert osq-alert--error osq-lockout-alert">
 				<div class="osq-lockout-icon">&#128274;</div>
 				<p><?php echo esc_html( \OSQ\Auth\LoginManager::get_lockout_message() ); ?></p>
-				<p class="osq-countdown-label">ロック解除まで (Unlock in): <strong id="osq-countdown-timer"></strong></p>
+				<p class="osq-countdown-label">ロック解除まで: <strong id="osq-countdown-timer"></strong></p>
 			</div>
 		<?php elseif ( isset( $_GET['osq_error'] ) ) : ?>
 			<div class="osq-alert osq-alert--error">
@@ -49,20 +49,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 				switch ( $error_code ) {
 					case 'empty_fields':
 					case 'empty':
-						esc_html_e( '社員番号とパスワードを入力してください。 (Please enter both your employee number and password.)', 'osq-stress-check' );
+						esc_html_e( '社員番号とパスワードを入力してください。', 'osq-stress-check' );
 						break;
 					case 'invalid_credentials':
 					case 'failed':
-						esc_html_e( '社員番号またはパスワードが正しくありません。 (Invalid employee number or password.)', 'osq-stress-check' );
+						esc_html_e( '社員番号またはパスワードが正しくありません。', 'osq-stress-check' );
 						break;
 					case 'locked_out':
 						echo esc_html( \OSQ\Auth\LoginManager::get_lockout_message() );
 						break;
 					case 'unauthorized':
-						esc_html_e( 'ダッシュボードにアクセスするにはログインしてください。 (Please login to access the dashboard.)', 'osq-stress-check' );
+						esc_html_e( 'ダッシュボードにアクセスするにはログインしてください。', 'osq-stress-check' );
 						break;
 					default:
-						esc_html_e( 'エラーが発生しました。もう一度お試しください。 (An error occurred. Please try again.)', 'osq-stress-check' );
+						esc_html_e( 'エラーが発生しました。もう一度お試しください。', 'osq-stress-check' );
 				}
 				?>
 			</div>
@@ -73,30 +73,30 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<input type="hidden" name="osq_employee_login" value="1">
 
 			<div class="osq-form-group">
-				<label for="employee_number"><?php esc_html_e( 'Employee Number', 'osq-stress-check' ); ?></label>
+				<label for="employee_number"><?php esc_html_e( '社員番号', 'osq-stress-check' ); ?></label>
 				<input type="text" name="employee_number" id="employee_number" class="osq-input" required autofocus <?php echo $is_locked ? 'disabled' : ''; ?>>
 			</div>
 
 			<div class="osq-form-group">
-				<label for="password"><?php esc_html_e( 'Password', 'osq-stress-check' ); ?></label>
+				<label for="password"><?php esc_html_e( 'パスワード', 'osq-stress-check' ); ?></label>
 				<input type="password" name="password" id="password" class="osq-input" required <?php echo $is_locked ? 'disabled' : ''; ?>>
 			</div>
 
 			<div class="osq-form-actions">
 				<?php if ( ! $is_locked ) : ?>
 				<button type="submit" class="osq-button osq-button--primary osq-button--full">
-					<?php esc_html_e( 'Login', 'osq-stress-check' ); ?>
+					<?php esc_html_e( 'ログイン', 'osq-stress-check' ); ?>
 				</button>
 				<?php else : ?>
 				<button type="button" class="osq-button osq-button--primary osq-button--full" disabled style="opacity:0.5;cursor:not-allowed;">
-					&#128274; <?php esc_html_e( 'アカウントがロックされています (Account Locked)', 'osq-stress-check' ); ?>
+					&#128274; <?php esc_html_e( 'アカウントがロックされています', 'osq-stress-check' ); ?>
 				</button>
 				<?php endif; ?>
 			</div>
 		</form>
 
 		<div class="osq-login-footer">
-			<p><?php esc_html_e( 'If you have forgotten your password, please contact your administrator.', 'osq-stress-check' ); ?></p>
+			<p><?php esc_html_e( 'パスワードをお忘れの場合は、管理者にお問い合わせください。', 'osq-stress-check' ); ?></p>
 		</div>
 	</div>
 </div>
@@ -275,7 +275,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 	function tick() {
 		if (remaining <= 0) {
-			timerEl.textContent = 'ロック解除中... (Unlocking...)';
+			timerEl.textContent = 'ロック解除中...';
 			setTimeout(function() { window.location.reload(); }, 1000);
 			return;
 		}

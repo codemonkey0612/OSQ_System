@@ -24,7 +24,7 @@ class Schema {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.5.0';
+	const VERSION = '1.6.2';
 
 	/**
 	 * Table names (without prefix).
@@ -36,7 +36,8 @@ class Schema {
 	const AI_PROMPTS         = 'osq_ai_prompts';
 	const AI_NGWORDS         = 'osq_ai_ngwords';
 	const AI_ADVICE_JOBS     = 'osq_ai_advice_jobs';
-	const AI_ADVICE_CACHE    = 'osq_ai_advice_cache';
+	const AI_ADVICE_CACHE        = 'osq_ai_advice_cache';
+	const AI_ORG_ADVICE_CACHE    = 'osq_ai_org_advice_cache';
 	const RESPONSE_HISTORY   = 'osq_response_history';
 	const COMPANIES          = 'osq_companies';
 
@@ -73,6 +74,8 @@ class Schema {
 			organization_1 varchar(255) DEFAULT NULL,
 			organization_2 varchar(255) DEFAULT NULL,
 			organization_3 varchar(255) DEFAULT NULL,
+			organization_4 varchar(255) DEFAULT NULL,
+			organization_5 varchar(255) DEFAULT NULL,
 			job_type tinyint(1) DEFAULT NULL,
 			industry_type tinyint(3) DEFAULT NULL,
 			position tinyint(1) DEFAULT NULL,
@@ -236,11 +239,33 @@ class Schema {
 			min_group_size tinyint unsigned NOT NULL DEFAULT 5,
 			excluded_orgs text DEFAULT NULL,
 			is_active tinyint(1) NOT NULL DEFAULT 1,
+			is_demo tinyint(1) NOT NULL DEFAULT 0,
 			created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 			PRIMARY KEY  (company_id),
 			UNIQUE KEY company_slug (company_slug),
 			KEY is_active (is_active)
+		) {$charset_collate};";
+
+		// Table: osq_ai_org_advice_cache — org-level AI advice cache (Phase 4).
+		// Acts as both cache and job queue: status=pending triggers WP-Cron processing.
+		$table_org_cache = $wpdb->prefix . self::AI_ORG_ADVICE_CACHE;
+		$sql[] = "CREATE TABLE {$table_org_cache} (
+			cache_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			company_id bigint(20) unsigned NOT NULL,
+			org_level varchar(30) NOT NULL,
+			org_value varchar(255) NOT NULL,
+			advice_text longtext DEFAULT NULL,
+			is_edited tinyint(1) NOT NULL DEFAULT 0,
+			model_used varchar(50) DEFAULT NULL,
+			status varchar(20) NOT NULL DEFAULT 'pending',
+			error_message text DEFAULT NULL,
+			cached_at datetime DEFAULT NULL,
+			updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			PRIMARY KEY  (cache_id),
+			UNIQUE KEY company_org (company_id, org_level, org_value(100)),
+			KEY status (status),
+			KEY company_id (company_id)
 		) {$charset_collate};";
 
 		return $sql;

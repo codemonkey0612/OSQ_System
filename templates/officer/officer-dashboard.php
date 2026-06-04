@@ -34,10 +34,10 @@ $db = \OSQ\Plugin::get_instance()->db();
 				<button id="osq-mobile-toggle" class="osq-hamburger">
 					<span class="dashicons dashicons-menu"></span>
 				</button>
-				<h2 id="osq-tab-title"><?php esc_html_e( 'Individual Responses', 'osq-stress-check' ); ?></h2>
+				<h2 id="osq-tab-title"><?php esc_html_e( '個人回答', 'osq-stress-check' ); ?></h2>
 			</div>
 			<div class="osq-header-right">
-				<span class="osq-user-welcome"><?php printf( esc_html__( 'Hello, %s', 'osq-stress-check' ), esc_html( $current_user->display_name ) ); ?></span>
+				<span class="osq-user-welcome"><?php printf( esc_html__( 'ようこそ、%s さん', 'osq-stress-check' ), esc_html( $current_user->display_name ) ); ?></span>
 			</div>
 		</header>
 
@@ -45,19 +45,19 @@ $db = \OSQ\Plugin::get_instance()->db();
 			<ul>
 				<li class="active" data-tab="responses">
 					<span class="dashicons dashicons-id-alt"></span>
-					<span><?php esc_html_e( 'Individual Responses', 'osq-stress-check' ); ?></span>
+					<span><?php esc_html_e( '個人回答', 'osq-stress-check' ); ?></span>
 				</li>
 				<li data-tab="followup">
 					<span class="dashicons dashicons-calendar-alt"></span>
-					<span><?php esc_html_e( 'Follow-up Tracking', 'osq-stress-check' ); ?></span>
+					<span><?php esc_html_e( 'フォローアップ管理', 'osq-stress-check' ); ?></span>
 				</li>
 				<li data-tab="profile">
 					<span class="dashicons dashicons-admin-users"></span>
-					<span><?php esc_html_e( 'Profile', 'osq-stress-check' ); ?></span>
+					<span><?php esc_html_e( 'プロフィール', 'osq-stress-check' ); ?></span>
 				</li>
 				<li data-tab="settings">
 					<span class="dashicons dashicons-admin-settings"></span>
-					<span><?php esc_html_e( 'Settings', 'osq-stress-check' ); ?></span>
+					<span><?php esc_html_e( '設定', 'osq-stress-check' ); ?></span>
 				</li>
 			</ul>
 		</nav>
@@ -69,34 +69,34 @@ $db = \OSQ\Plugin::get_instance()->db();
 					<div class="osq-filter-controls">
 						<div class="osq-filters">
 							<div class="osq-search-box">
-								<input type="text" id="osq-employee-search" placeholder="<?php esc_attr_e( 'Search employees...', 'osq-stress-check' ); ?>" class="osq-input-search">
+								<input type="text" id="osq-employee-search" placeholder="<?php esc_attr_e( '従業員を検索...', 'osq-stress-check' ); ?>" class="osq-input-search">
 							</div>
 							<select id="osq-org-filter-1" class="osq-select">
-								<option value=""><?php esc_html_e( 'Filter by Organization', 'osq-stress-check' ); ?></option>
+								<option value=""><?php esc_html_e( '組織で絞り込む', 'osq-stress-check' ); ?></option>
 								<!-- Options will be populated dynamically -->
 							</select>
 							<select id="osq-status-filter" class="osq-select">
-								<option value=""><?php esc_html_e( 'All Statuses', 'osq-stress-check' ); ?></option>
-								<option value="completed"><?php esc_html_e( 'Completed Only', 'osq-stress-check' ); ?></option>
-								<option value="pending"><?php esc_html_e( 'Pending Only', 'osq-stress-check' ); ?></option>
-								<option value="high_stress"><?php esc_html_e( 'High Stress Only', 'osq-stress-check' ); ?></option>
+								<option value=""><?php esc_html_e( 'すべてのステータス', 'osq-stress-check' ); ?></option>
+								<option value="completed"><?php esc_html_e( '完了のみ', 'osq-stress-check' ); ?></option>
+								<option value="pending"><?php esc_html_e( '未完了のみ', 'osq-stress-check' ); ?></option>
+								<option value="high_stress"><?php esc_html_e( '高ストレスのみ', 'osq-stress-check' ); ?></option>
 							</select>
 							<div class="osq-filter-actions">
-								<button id="osq-apply-filters" class="osq-button osq-button--primary"><?php esc_html_e( 'Apply Filters', 'osq-stress-check' ); ?></button>
-								<button id="osq-clear-filters" class="osq-button"><?php esc_html_e( 'Clear Filters', 'osq-stress-check' ); ?></button>
+								<button id="osq-apply-filters" class="osq-button osq-button--primary"><?php esc_html_e( 'フィルター適用', 'osq-stress-check' ); ?></button>
+								<button id="osq-clear-filters" class="osq-button"><?php esc_html_e( 'フィルタークリア', 'osq-stress-check' ); ?></button>
 							</div>
 						</div>
 					</div>
 					<div class="osq-bulk-actions">
 						<label>
-							<input type="checkbox" id="osq-select-all"> <?php esc_html_e( 'Select All', 'osq-stress-check' ); ?>
+							<input type="checkbox" id="osq-select-all"> <?php esc_html_e( 'すべて選択', 'osq-stress-check' ); ?>
 						</label>
 						<select id="osq-bulk-action" class="osq-select">
-							<option value=""><?php esc_html_e( 'Bulk Actions', 'osq-stress-check' ); ?></option>
-							<option value="schedule_followup"><?php esc_html_e( 'Schedule Follow-up', 'osq-stress-check' ); ?></option>
-							<option value="mark_completed"><?php esc_html_e( 'Mark as Completed', 'osq-stress-check' ); ?></option>
+							<option value=""><?php esc_html_e( '一括操作', 'osq-stress-check' ); ?></option>
+							<option value="schedule_followup"><?php esc_html_e( 'フォローアップを予定する', 'osq-stress-check' ); ?></option>
+							<option value="mark_completed"><?php esc_html_e( '完了としてマーク', 'osq-stress-check' ); ?></option>
 						</select>
-						<button id="osq-execute-bulk" class="osq-button osq-button--secondary" disabled><?php esc_html_e( 'Execute', 'osq-stress-check' ); ?></button>
+						<button id="osq-execute-bulk" class="osq-button osq-button--secondary" disabled><?php esc_html_e( '実行', 'osq-stress-check' ); ?></button>
 					</div>
 				</div>
 				<div class="osq-table-responsive">
@@ -104,16 +104,16 @@ $db = \OSQ\Plugin::get_instance()->db();
 						<thead>
 							<tr>
 								<th><?php esc_html_e( 'ID', 'osq-stress-check' ); ?></th>
-								<th><?php esc_html_e( 'Name', 'osq-stress-check' ); ?></th>
-								<th><?php esc_html_e( 'Department', 'osq-stress-check' ); ?></th>
-								<th><?php esc_html_e( 'Stress Status', 'osq-stress-check' ); ?></th>
-								<th><?php esc_html_e( 'Completion Date', 'osq-stress-check' ); ?></th>
-								<th><?php esc_html_e( 'Actions', 'osq-stress-check' ); ?></th>
+								<th><?php esc_html_e( '氏名', 'osq-stress-check' ); ?></th>
+								<th><?php esc_html_e( '部署', 'osq-stress-check' ); ?></th>
+								<th><?php esc_html_e( 'ストレス状況', 'osq-stress-check' ); ?></th>
+								<th><?php esc_html_e( '完了日', 'osq-stress-check' ); ?></th>
+								<th><?php esc_html_e( '操作', 'osq-stress-check' ); ?></th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr>
-								<td colspan="6" class="osq-empty-table"><?php esc_html_e( 'Loading employee data...', 'osq-stress-check' ); ?></td>
+								<td colspan="6" class="osq-empty-table"><?php esc_html_e( '従業員データを読み込み中...', 'osq-stress-check' ); ?></td>
 							</tr>
 						</tbody>
 					</table>
@@ -124,22 +124,22 @@ $db = \OSQ\Plugin::get_instance()->db();
 			<section id="tab-profile" class="osq-tab-panel">
 				<div class="osq-profile-form-container" style="max-width: 500px;">
 					<form id="osq-officer-password-form" class="osq-admin-form">
-						<h3 style="margin-top: 0; margin-bottom: 20px; font-size: 18px; color: #1e293b;"><?php esc_html_e( 'Change Password', 'osq-stress-check' ); ?></h3>
-						
+						<h3 style="margin-top: 0; margin-bottom: 20px; font-size: 18px; color: #1e293b;"><?php esc_html_e( 'パスワード変更', 'osq-stress-check' ); ?></h3>
+
 						<div class="osq-form-row">
-							<label><?php esc_html_e( 'Current Password', 'osq-stress-check' ); ?></label>
+							<label><?php esc_html_e( '現在のパスワード', 'osq-stress-check' ); ?></label>
 							<input type="password" name="current_password" required class="osq-input-search" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px;">
 						</div>
 						<div class="osq-form-row">
-							<label><?php esc_html_e( 'New Password', 'osq-stress-check' ); ?></label>
+							<label><?php esc_html_e( '新しいパスワード', 'osq-stress-check' ); ?></label>
 							<input type="password" name="new_password" required minlength="8" class="osq-input-search" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px;">
 						</div>
 						<div class="osq-form-row">
-							<label><?php esc_html_e( 'Confirm New Password', 'osq-stress-check' ); ?></label>
+							<label><?php esc_html_e( '新しいパスワード（確認）', 'osq-stress-check' ); ?></label>
 							<input type="password" name="confirm_password" required minlength="8" class="osq-input-search" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px;">
 						</div>
 						<div class="osq-form-actions">
-							<button type="submit" class="osq-button osq-button--primary" style="padding: 10px 20px; background: #38bdf8; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;"><?php esc_html_e( 'Update Password', 'osq-stress-check' ); ?></button>
+							<button type="submit" class="osq-button osq-button--primary" style="padding: 10px 20px; background: #38bdf8; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;"><?php esc_html_e( 'パスワードを更新する', 'osq-stress-check' ); ?></button>
 							<div id="osq-officer-password-message" class="osq-settings-message" style="display: none; margin-top: 15px;"></div>
 						</div>
 					</form>
@@ -149,25 +149,25 @@ $db = \OSQ\Plugin::get_instance()->db();
 			<!-- Follow-up Tracking Tab -->
 			<section id="tab-followup" class="osq-tab-panel">
 				<div class="osq-panel-header">
-					<h3><?php esc_html_e( 'Follow-up Tracking', 'osq-stress-check' ); ?></h3>
+					<h3><?php esc_html_e( 'フォローアップ管理', 'osq-stress-check' ); ?></h3>
 					<div class="osq-search-box">
-						<input type="text" id="osq-followup-search" placeholder="<?php esc_attr_e( 'Search follow-ups...', 'osq-stress-check' ); ?>" class="osq-input-search">
+						<input type="text" id="osq-followup-search" placeholder="<?php esc_attr_e( 'フォローアップを検索...', 'osq-stress-check' ); ?>" class="osq-input-search">
 					</div>
 				</div>
 				<div class="osq-table-responsive">
 					<table class="osq-admin-table" id="osq-followup-table">
 						<thead>
 							<tr>
-								<th><?php esc_html_e( 'Employee', 'osq-stress-check' ); ?></th>
-								<th><?php esc_html_e( 'Status', 'osq-stress-check' ); ?></th>
-								<th><?php esc_html_e( 'Scheduled Date', 'osq-stress-check' ); ?></th>
-								<th><?php esc_html_e( 'Notes', 'osq-stress-check' ); ?></th>
-								<th><?php esc_html_e( 'Actions', 'osq-stress-check' ); ?></th>
+								<th><?php esc_html_e( '従業員', 'osq-stress-check' ); ?></th>
+								<th><?php esc_html_e( 'ステータス', 'osq-stress-check' ); ?></th>
+								<th><?php esc_html_e( '予定日', 'osq-stress-check' ); ?></th>
+								<th><?php esc_html_e( 'メモ', 'osq-stress-check' ); ?></th>
+								<th><?php esc_html_e( '操作', 'osq-stress-check' ); ?></th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr>
-								<td colspan="5" class="osq-empty-table"><?php esc_html_e( 'Loading follow-up data...', 'osq-stress-check' ); ?></td>
+								<td colspan="5" class="osq-empty-table"><?php esc_html_e( 'フォローアップデータを読み込み中...', 'osq-stress-check' ); ?></td>
 							</tr>
 						</tbody>
 					</table>
@@ -193,14 +193,14 @@ $db = \OSQ\Plugin::get_instance()->db();
 				<form id="osq-settings-form" class="osq-admin-form">
 					<!-- The General Admin controls system-wide settings like timeout, so Officer only sees language preference -->
 					<div class="osq-form-row">
-						<label><?php esc_html_e( 'System Language', 'osq-stress-check' ); ?></label>
+						<label><?php esc_html_e( 'システム言語', 'osq-stress-check' ); ?></label>
 						<select name="language" class="osq-select">
-							<option value="ja" <?php selected( $current_language, 'ja' ); ?>><?php esc_html_e( 'Japanese', 'osq-stress-check' ); ?></option>
-							<option value="en" <?php selected( $current_language, 'en' ); ?>><?php esc_html_e( 'English', 'osq-stress-check' ); ?></option>
+							<option value="ja" <?php selected( $current_language, 'ja' ); ?>><?php esc_html_e( '日本語', 'osq-stress-check' ); ?></option>
+							<option value="en" <?php selected( $current_language, 'en' ); ?>><?php esc_html_e( '英語', 'osq-stress-check' ); ?></option>
 						</select>
 					</div>
 					<div class="osq-form-actions">
-						<button type="submit" class="osq-button osq-button--primary"><?php esc_html_e( 'Save Settings', 'osq-stress-check' ); ?></button>
+						<button type="submit" class="osq-button osq-button--primary"><?php esc_html_e( '設定を保存する', 'osq-stress-check' ); ?></button>
 						<div id="osq-settings-message" class="osq-settings-message" style="display: none; margin-top: 15px;"></div>
 					</div>
 				</form>
@@ -214,25 +214,25 @@ $db = \OSQ\Plugin::get_instance()->db();
 	<div class="osq-modal-overlay"></div>
 	<div class="osq-modal-content">
 		<div class="osq-modal-header">
-			<h3><?php esc_html_e( 'Employee Detailed Responses', 'osq-stress-check' ); ?></h3>
+			<h3><?php esc_html_e( '従業員回答詳細', 'osq-stress-check' ); ?></h3>
 			<button class="osq-modal-close">&times;</button>
 		</div>
 		<div class="osq-modal-body">
 			<div class="osq-loading-indicator" id="osq-response-loading">
-				<?php esc_html_e( 'Loading...', 'osq-stress-check' ); ?>
+				<?php esc_html_e( '読み込み中...', 'osq-stress-check' ); ?>
 			</div>
 			<div id="osq-response-details" style="display: none;">
 				<div class="osq-employee-info">
-					<h4><?php esc_html_e( 'Employee Details', 'osq-stress-check' ); ?></h4>
+					<h4><?php esc_html_e( '従業員情報', 'osq-stress-check' ); ?></h4>
 					<div id="osq-employee-basic-info"></div>
 				</div>
 				<div class="osq-response-section">
-					<h4><?php esc_html_e( 'Response Details', 'osq-stress-check' ); ?></h4>
+					<h4><?php esc_html_e( '回答詳細', 'osq-stress-check' ); ?></h4>
 					<div class="osq-response-tabs">
-						<button type="button" class="osq-tab-btn active" data-tab="A"><?php esc_html_e( 'Section A', 'osq-stress-check' ); ?></button>
-						<button type="button" class="osq-tab-btn" data-tab="B"><?php esc_html_e( 'Section B', 'osq-stress-check' ); ?></button>
-						<button type="button" class="osq-tab-btn" data-tab="C"><?php esc_html_e( 'Section C', 'osq-stress-check' ); ?></button>
-						<button type="button" class="osq-tab-btn" data-tab="D"><?php esc_html_e( 'Section D', 'osq-stress-check' ); ?></button>
+						<button type="button" class="osq-tab-btn active" data-tab="A"><?php esc_html_e( 'セクションA', 'osq-stress-check' ); ?></button>
+						<button type="button" class="osq-tab-btn" data-tab="B"><?php esc_html_e( 'セクションB', 'osq-stress-check' ); ?></button>
+						<button type="button" class="osq-tab-btn" data-tab="C"><?php esc_html_e( 'セクションC', 'osq-stress-check' ); ?></button>
+						<button type="button" class="osq-tab-btn" data-tab="D"><?php esc_html_e( 'セクションD', 'osq-stress-check' ); ?></button>
 					</div>
 					<div class="osq-questions-tabs">
 						<div class="osq-questions-list osq-questions-tab active" id="osq-questions-tab-a"></div>
@@ -242,7 +242,7 @@ $db = \OSQ\Plugin::get_instance()->db();
 					</div>
 				</div>
 				<div class="osq-scoring-section">
-					<h4><?php esc_html_e( 'Scoring Results', 'osq-stress-check' ); ?></h4>
+					<h4><?php esc_html_e( '判定結果', 'osq-stress-check' ); ?></h4>
 					<div id="osq-scoring-results"></div>
 				</div>
 			</div>
@@ -255,31 +255,31 @@ $db = \OSQ\Plugin::get_instance()->db();
 	<div class="osq-modal-overlay"></div>
 	<div class="osq-modal-content">
 		<div class="osq-modal-header">
-			<h3><?php esc_html_e( 'Update Follow-up Status', 'osq-stress-check' ); ?></h3>
+			<h3><?php esc_html_e( 'フォローアップ状況の更新', 'osq-stress-check' ); ?></h3>
 			<button class="osq-modal-close">&times;</button>
 		</div>
 		<div class="osq-modal-body">
 			<form id="osq-followup-form">
 				<input type="hidden" id="osq-followup-employee-id" value="">
 				<div class="osq-form-row">
-					<label><?php esc_html_e( 'Follow-up Status', 'osq-stress-check' ); ?></label>
+					<label><?php esc_html_e( 'フォローアップステータス', 'osq-stress-check' ); ?></label>
 					<select id="osq-followup-status" class="osq-select" required>
-						<option value="Scheduled"><?php esc_html_e( 'Scheduled', 'osq-stress-check' ); ?></option>
-						<option value="Completed"><?php esc_html_e( 'Completed', 'osq-stress-check' ); ?></option>
-						<option value="Cancelled"><?php esc_html_e( 'Cancelled', 'osq-stress-check' ); ?></option>
+						<option value="Scheduled"><?php esc_html_e( '予定済み', 'osq-stress-check' ); ?></option>
+						<option value="Completed"><?php esc_html_e( '完了', 'osq-stress-check' ); ?></option>
+						<option value="Cancelled"><?php esc_html_e( 'キャンセル', 'osq-stress-check' ); ?></option>
 					</select>
 				</div>
 				<div class="osq-form-row">
-					<label><?php esc_html_e( 'Schedule Date', 'osq-stress-check' ); ?></label>
+					<label><?php esc_html_e( '予定日', 'osq-stress-check' ); ?></label>
 					<input type="datetime-local" id="osq-followup-schedule-date" class="osq-input">
 				</div>
 				<div class="osq-form-row">
-					<label><?php esc_html_e( 'Notes', 'osq-stress-check' ); ?></label>
+					<label><?php esc_html_e( 'メモ', 'osq-stress-check' ); ?></label>
 					<textarea id="osq-followup-notes" class="osq-textarea" rows="4"></textarea>
 				</div>
 				<div class="osq-form-actions">
-					<button type="submit" class="osq-button osq-button--primary"><?php esc_html_e( 'Update Follow-up', 'osq-stress-check' ); ?></button>
-					<button type="button" class="osq-button osq-modal-close-btn"><?php esc_html_e( 'Cancel', 'osq-stress-check' ); ?></button>
+					<button type="submit" class="osq-button osq-button--primary"><?php esc_html_e( 'フォローアップを更新する', 'osq-stress-check' ); ?></button>
+					<button type="button" class="osq-button osq-modal-close-btn"><?php esc_html_e( 'キャンセル', 'osq-stress-check' ); ?></button>
 				</div>
 			</form>
 		</div>

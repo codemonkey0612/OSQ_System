@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<div class="osq-dashboard-card osq-questionnaire-card">
 		<header class="osq-questionnaire-header">
 			<h1><?php esc_html_e( 'OSQ Stress Check', 'osq-stress-check' ); ?></h1>
-			<p><?php esc_html_e( 'Please complete all 57 items in order.', 'osq-stress-check' ); ?></p>
+			<p><?php esc_html_e( '57項目すべてに順番にお答えください。', 'osq-stress-check' ); ?></p>
 		</header>
 		
 		<div class="osq-form-wrap">

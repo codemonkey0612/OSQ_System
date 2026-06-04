@@ -70,10 +70,32 @@ class GroupAnalyzer {
 			$where[]  = 'e.organization_3 = %s';
 			$values[] = $filter['organization_3'];
 		}
+		if ( ! empty( $filter['organization_4'] ) ) {
+			$where[]  = 'e.organization_4 = %s';
+			$values[] = $filter['organization_4'];
+		}
+		if ( ! empty( $filter['organization_5'] ) ) {
+			$where[]  = 'e.organization_5 = %s';
+			$values[] = $filter['organization_5'];
+		}
+
+		// Exclude specific org values from the axis column.
+		if ( ! empty( $filter['exclude_orgs'] ) && ! empty( $filter['axis'] ) ) {
+			$axis        = $filter['axis'];
+			$allowed_axes = array( 'organization_1', 'organization_2', 'organization_3', 'organization_4', 'organization_5' );
+			if ( in_array( $axis, $allowed_axes, true ) ) {
+				$exclude = array_filter( array_map( 'strval', (array) $filter['exclude_orgs'] ) );
+				if ( ! empty( $exclude ) ) {
+					$placeholders = implode( ', ', array_fill( 0, count( $exclude ), '%s' ) );
+					$where[]      = "e.{$axis} NOT IN ({$placeholders})";
+					$values       = array_merge( $values, array_values( $exclude ) );
+				}
+			}
+		}
 
 		$where_sql = implode( ' AND ', $where );
 
-		// Count distinct respondents — enforce 10-person rule.
+		// Count distinct respondents — enforce per-tenant minimum (legal fallback: 10).
 		$count_sql = "SELECT COUNT(DISTINCT e.employee_id) FROM {$responses_table} r
 			INNER JOIN {$employees_table} e ON r.employee_id = e.employee_id
 			WHERE {$where_sql}";
@@ -84,8 +106,8 @@ class GroupAnalyzer {
 
 		$respondent_count = (int) $wpdb->get_var( $count_sql );
 
-		if ( $respondent_count < self::MIN_GROUP_SIZE ) {
-			return null; // Legal requirement: cannot analyze groups < 10.
+		if ( $respondent_count < $this->get_min_group_size( $filter ) ) {
+			return null;
 		}
 
 		// Fetch all completed responses for this group.
@@ -138,6 +160,14 @@ class GroupAnalyzer {
 			$where[]  = 'e.organization_3 = %s';
 			$values[] = $filter['organization_3'];
 		}
+		if ( ! empty( $filter['organization_4'] ) ) {
+			$where[]  = 'e.organization_4 = %s';
+			$values[] = $filter['organization_4'];
+		}
+		if ( ! empty( $filter['organization_5'] ) ) {
+			$where[]  = 'e.organization_5 = %s';
+			$values[] = $filter['organization_5'];
+		}
 
 		$where_sql = implode( ' AND ', $where );
 
@@ -161,6 +191,25 @@ class GroupAnalyzer {
 		$completed = (int) $wpdb->get_var( $completed_sql );
 
 		return round( $completed / $total, 4 );
+	}
+
+	/**
+	 * Resolve the effective minimum group size.
+	 * Priority: filter override → per-tenant DB value → legal fallback constant.
+	 *
+	 * @param array $filter
+	 * @return int
+	 */
+	private function get_min_group_size( $filter ) {
+		if ( isset( $filter['min_group_size'] ) && (int) $filter['min_group_size'] >= 1 ) {
+			return (int) $filter['min_group_size'];
+		}
+		global $wpdb;
+		$val = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT min_group_size FROM {$wpdb->prefix}osq_companies WHERE company_id = %d",
+			DbManager::current_company_id()
+		) );
+		return $val >= 1 ? $val : self::MIN_GROUP_SIZE;
 	}
 
 	/**

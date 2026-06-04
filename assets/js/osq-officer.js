@@ -68,14 +68,18 @@
 
                         // Decode HTML entities for proper Japanese text display
                         const decodedName = $('<div/>').html(emp.name).text();
-                        const decodedOrg1 = $('<div/>').html(emp.organization_1 || '-').text();
-                        const localizedOrg1 = translateOrgLabel(decodedOrg1);
+                        const orgParts = [];
+                        for (let n = 1; n <= 5; n++) {
+                            const v = emp['organization_' + n];
+                            if (v) { orgParts.push($('<div/>').html(v).text()); }
+                        }
+                        const orgDisplay = orgParts.length ? orgParts.join(' › ') : '-';
 
                         const row = `
 								<tr>
 									<td><input type="checkbox" class="osq-employee-checkbox" data-emp-id="${emp.employee_id}"> ${emp.employee_number}</td>
 									<td><strong>${decodedName}</strong></td>
-                                    <td>${localizedOrg1}</td>
+                                    <td>${orgDisplay}</td>
                                     <td>${statusLabel}</td>
                                     <td>${emp.completed_at || '-'}</td>
                                     <td>
@@ -542,10 +546,17 @@
         
         // Display employee info
         const empInfo = data.employee_info;
+        // Build compact org chain using org_compact (array of {label, value} pairs).
+        let orgHtml = '-';
+        if (Array.isArray(empInfo.org_compact) && empInfo.org_compact.length) {
+            orgHtml = empInfo.org_compact.map(function(pair) {
+                return $('<span/>').text(pair.label + ': ' + pair.value).html();
+            }).join('<br>');
+        }
         $('#osq-employee-basic-info').html(`
             <p><strong>${i18n.label_name || 'Name'}:</strong> ${empInfo.name}</p>
             <p><strong>${i18n.label_employee_id || 'Employee ID'}:</strong> ${empInfo.employee_number}</p>
-            <p><strong>${i18n.label_organization || 'Organization'}:</strong> ${empInfo.organization_1}${empInfo.organization_2 ? ' / ' + empInfo.organization_2 : ''}</p>
+            <p><strong>${i18n.label_organization || 'Organization'}:</strong><br>${orgHtml}</p>
             <p><strong>${i18n.label_completed_date || 'Completed Date'}:</strong> ${empInfo.completed_at}</p>
         `);
         
@@ -785,14 +796,18 @@
             
             // Decode HTML entities for proper Japanese text display
             const decodedName = $('<div/>').html(emp.name).text();
-            const decodedOrg1 = $('<div/>').html(emp.organization_1 || '-').text();
-            const localizedOrg1 = translateOrgLabel(decodedOrg1);
-            
+            const orgPartsF = [];
+            for (let n = 1; n <= 5; n++) {
+                const v = emp['organization_' + n];
+                if (v) { orgPartsF.push($('<div/>').html(v).text()); }
+            }
+            const orgDisplayF = orgPartsF.length ? orgPartsF.join(' › ') : '-';
+
             const row = `
                 <tr>
                     <td><input type="checkbox" class="osq-employee-checkbox" data-emp-id="${emp.employee_id}"> ${emp.employee_number}</td>
                     <td><strong>${decodedName}</strong></td>
-                    <td>${localizedOrg1}</td>
+                    <td>${orgDisplayF}</td>
                     <td>${statusLabel}</td>
                     <td>${emp.completed_at || '-'}</td>
                     <td>${actionBtn} ${viewBtn} ${followBtn}</td>

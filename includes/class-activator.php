@@ -38,7 +38,7 @@ class Activator {
 	 *
 	 * @var string
 	 */
-	const DB_VERSION = '1.5.0';
+	const DB_VERSION = '1.6.1';
 
 	/**
 	 * Fired on plugin activation.
@@ -102,6 +102,7 @@ class Activator {
 	 * @return void
 	 */
 	private static function create_tables() {
+		global $wpdb;
 		$installed_version = get_option( 'osq_db_version', '0' );
 
 		if ( version_compare( $installed_version, Database\Schema::VERSION, '>=' ) ) {
@@ -114,6 +115,27 @@ class Activator {
 
 		foreach ( $sql_statements as $sql ) {
 			dbDelta( $sql );
+		}
+
+		// 1.5.0 → 1.6.0: add org_4/5 columns if not already present.
+		if ( version_compare( $installed_version, '1.6.0', '<' ) ) {
+			$table   = $wpdb->prefix . Database\Schema::EMPLOYEES;
+			$columns = $wpdb->get_col( "SHOW COLUMNS FROM {$table}" );
+			if ( ! in_array( 'organization_4', $columns, true ) ) {
+				$wpdb->query( "ALTER TABLE {$table} ADD COLUMN organization_4 varchar(255) DEFAULT NULL AFTER organization_3" );
+			}
+			if ( ! in_array( 'organization_5', $columns, true ) ) {
+				$wpdb->query( "ALTER TABLE {$table} ADD COLUMN organization_5 varchar(255) DEFAULT NULL AFTER organization_4" );
+			}
+		}
+
+		// 1.6.0 → 1.6.1: add is_demo column to osq_companies.
+		if ( version_compare( $installed_version, '1.6.1', '<' ) ) {
+			$table   = $wpdb->prefix . Database\Schema::COMPANIES;
+			$columns = $wpdb->get_col( "SHOW COLUMNS FROM {$table}" );
+			if ( ! in_array( 'is_demo', $columns, true ) ) {
+				$wpdb->query( "ALTER TABLE {$table} ADD COLUMN is_demo tinyint(1) NOT NULL DEFAULT 0 AFTER is_active" );
+			}
 		}
 
 		update_option( 'osq_db_version', Database\Schema::VERSION );

@@ -212,7 +212,7 @@ class OfficerUiHandler {
 		$wpdb->query("SET NAMES utf8mb4");
 
 		$query = "
-			SELECT e.employee_id, e.employee_number, e.name, e.organization_1, e.organization_2, 
+			SELECT e.employee_id, e.employee_number, e.name, e.organization_1, e.organization_2, e.organization_3, e.organization_4, e.organization_5,
 			       r.is_complete, r.completed_at, r.is_high_stress_method1, r.is_high_stress_method2
 			FROM {$emp_table} e
 			LEFT JOIN {$res_table} r ON e.employee_id = r.employee_id
@@ -221,18 +221,14 @@ class OfficerUiHandler {
 		";
 
 		$employees = $wpdb->get_results( $query );
-		
-		// Log query results for debugging
-		error_log('OSQ Officer: Found ' . count($employees) . ' employees');
-		if (count($employees) > 0) {
-			error_log('OSQ Officer: First employee - ID: ' . $employees[0]->employee_id . ', Name: ' . $employees[0]->name);
-		}
-		
-		// Ensure proper encoding for Japanese text and formatting
+
 		foreach ( $employees as &$employee ) {
 			$employee->name = htmlspecialchars( $employee->name, ENT_QUOTES, 'UTF-8' );
 			$employee->organization_1 = !empty( $employee->organization_1 ) ? htmlspecialchars( $employee->organization_1, ENT_QUOTES, 'UTF-8' ) : '';
 			$employee->organization_2 = !empty( $employee->organization_2 ) ? htmlspecialchars( $employee->organization_2, ENT_QUOTES, 'UTF-8' ) : '';
+			$employee->organization_3 = !empty( $employee->organization_3 ) ? htmlspecialchars( $employee->organization_3, ENT_QUOTES, 'UTF-8' ) : '';
+			$employee->organization_4 = !empty( $employee->organization_4 ) ? htmlspecialchars( $employee->organization_4, ENT_QUOTES, 'UTF-8' ) : '';
+			$employee->organization_5 = !empty( $employee->organization_5 ) ? htmlspecialchars( $employee->organization_5, ENT_QUOTES, 'UTF-8' ) : '';
 			$employee->completed_at = !empty( $employee->completed_at ) ? date_i18n( get_option( 'date_format' ), strtotime( $employee->completed_at ) ) : '';
 			
 			// Determine high stress status
@@ -327,6 +323,11 @@ class OfficerUiHandler {
 					'name' => htmlspecialchars( $data->name, ENT_QUOTES, 'UTF-8' ),
 					'organization_1' => htmlspecialchars( $data->organization_1 ?? '', ENT_QUOTES, 'UTF-8' ),
 					'organization_2' => htmlspecialchars( $data->organization_2 ?? '', ENT_QUOTES, 'UTF-8' ),
+					'organization_3' => htmlspecialchars( $data->organization_3 ?? '', ENT_QUOTES, 'UTF-8' ),
+					'organization_4' => htmlspecialchars( $data->organization_4 ?? '', ENT_QUOTES, 'UTF-8' ),
+					'organization_5' => htmlspecialchars( $data->organization_5 ?? '', ENT_QUOTES, 'UTF-8' ),
+					'org_labels'        => \OSQ\Services\OrgLabelService::get_all_labels( \OSQ\Database\DbManager::current_company_id() ),
+					'org_compact'       => \OSQ\Services\OrgLabelService::compact_for_display( $data, \OSQ\Database\DbManager::current_company_id() ),
 					'completed_at' => $completed_at,
 				),
 				'responses' => array(),
@@ -473,11 +474,13 @@ class OfficerUiHandler {
 		}
 
 		global $wpdb;
-		$emp_table = $wpdb->prefix . \OSQ\Database\Schema::EMPLOYEES;
+		$emp_table  = $wpdb->prefix . \OSQ\Database\Schema::EMPLOYEES;
+		$company_id = \OSQ\Database\DbManager::current_company_id();
 
-		// Get unique organization values
-		$query = "SELECT DISTINCT organization_1, organization_2 FROM {$emp_table} WHERE organization_1 IS NOT NULL ORDER BY organization_1";
-		$organizations = $wpdb->get_results( $query );
+		$organizations = $wpdb->get_results( $wpdb->prepare(
+			"SELECT DISTINCT organization_1, organization_2 FROM {$emp_table} WHERE company_id = %d AND organization_1 IS NOT NULL ORDER BY organization_1",
+			$company_id
+		) );
 
 		wp_send_json_success( array(
 			'organizations' => $organizations,
@@ -509,9 +512,6 @@ class OfficerUiHandler {
 
 		$followups = $wpdb->get_results( $wpdb->prepare( $query, get_current_user_id() ) );
 
-		// Log query results for debugging
-		error_log('OSQ Officer: Found ' . count($followups) . ' follow-up records for officer ID: ' . get_current_user_id());
-		
 		// Format dates
 		foreach ( $followups as &$followup ) {
 			$followup->scheduled_date = !empty( $followup->scheduled_date ) ? date_i18n( get_option( 'date_format' ), strtotime( $followup->scheduled_date ) ) : '';
@@ -543,9 +543,11 @@ class OfficerUiHandler {
 		$emp_table = $wpdb->prefix . \OSQ\Database\Schema::EMPLOYEES;
 		$res_table = $wpdb->prefix . \OSQ\Database\Schema::RESPONSES;
 
-		// Build dynamic query
-		$where_conditions = array();
-		$query_params = array();
+		$company_id = \OSQ\Database\DbManager::current_company_id();
+
+		// Build dynamic query — always scope to current tenant.
+		$where_conditions = array( 'e.company_id = %d' );
+		$query_params     = array( $company_id );
 
 		if ( ! empty( $org_level_1 ) ) {
 			$where_conditions[] = "e.organization_1 = %s";
@@ -579,7 +581,7 @@ class OfficerUiHandler {
 		}
 
 		$query = "
-			SELECT e.employee_id, e.employee_number, e.name, e.organization_1, e.organization_2, 
+			SELECT e.employee_id, e.employee_number, e.name, e.organization_1, e.organization_2, e.organization_3, e.organization_4, e.organization_5,
 			       r.is_complete, r.completed_at, r.is_high_stress_method1, r.is_high_stress_method2
 			FROM {$emp_table} e
 			LEFT JOIN {$res_table} r ON e.employee_id = r.employee_id
@@ -588,18 +590,19 @@ class OfficerUiHandler {
 			LIMIT 500
 		";
 
-		// Prepare query with parameters if needed
 		if ( ! empty( $query_params ) ) {
 			$query = $wpdb->prepare( $query, $query_params );
 		}
 
 		$employees = $wpdb->get_results( $query );
-		
-		// Process results
+
 		foreach ( $employees as &$employee ) {
 			$employee->name = htmlspecialchars( $employee->name, ENT_QUOTES, 'UTF-8' );
 			$employee->organization_1 = !empty( $employee->organization_1 ) ? htmlspecialchars( $employee->organization_1, ENT_QUOTES, 'UTF-8' ) : '';
 			$employee->organization_2 = !empty( $employee->organization_2 ) ? htmlspecialchars( $employee->organization_2, ENT_QUOTES, 'UTF-8' ) : '';
+			$employee->organization_3 = !empty( $employee->organization_3 ) ? htmlspecialchars( $employee->organization_3, ENT_QUOTES, 'UTF-8' ) : '';
+			$employee->organization_4 = !empty( $employee->organization_4 ) ? htmlspecialchars( $employee->organization_4, ENT_QUOTES, 'UTF-8' ) : '';
+			$employee->organization_5 = !empty( $employee->organization_5 ) ? htmlspecialchars( $employee->organization_5, ENT_QUOTES, 'UTF-8' ) : '';
 			$employee->completed_at = !empty( $employee->completed_at ) ? date_i18n( get_option( 'date_format' ), strtotime( $employee->completed_at ) ) : '';
 			
 			// Determine high stress status

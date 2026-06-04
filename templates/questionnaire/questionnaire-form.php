@@ -13,10 +13,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 use OSQ\Questionnaire\QuestionDefinitions;
 
 $sections = array(
-	'A' => __( 'A. あなたの仕事について (About Your Work)', 'osq-stress-check' ),
-	'B' => __( 'B. 最近1か月の状態について (Your Condition in the Past Month)', 'osq-stress-check' ),
-	'C' => __( 'C. 周りの方々について (About People Around You)', 'osq-stress-check' ),
-	'D' => __( 'D. 満足度について (Satisfaction)', 'osq-stress-check' ),
+	'A' => __( 'A. あなたの仕事について', 'osq-stress-check' ),
+	'B' => __( 'B. 最近1か月の状態について', 'osq-stress-check' ),
+	'C' => __( 'C. 周りの方々について', 'osq-stress-check' ),
+	'D' => __( 'D. 満足度について', 'osq-stress-check' ),
 );
 
 $curr_locale = get_locale();
@@ -31,7 +31,7 @@ $total_items = count( QuestionDefinitions::get_questions() );
 	<div class="osq-progress-bar-wrap">
 		<div class="osq-progress-label">
 			<span id="osq-answered-count">0</span> / <?php echo esc_html( $total_items ); ?>
-			<?php esc_html_e( 'questions answered', 'osq-stress-check' ); ?>
+			<?php esc_html_e( '問回答済み', 'osq-stress-check' ); ?>
 		</div>
 		<div class="osq-progress-bar">
 			<div id="osq-progress-fill" class="osq-progress-fill" style="width: 0%;"></div>
@@ -84,7 +84,7 @@ $total_items = count( QuestionDefinitions::get_questions() );
 
 				<!-- Response option header -->
 				<div class="osq-options-header">
-					<span class="osq-options-header__label"><?php esc_html_e( 'Question', 'osq-stress-check' ); ?></span>
+					<span class="osq-options-header__label"><?php esc_html_e( '設問', 'osq-stress-check' ); ?></span>
 					<?php foreach ( $options as $val => $texts ) : ?>
 						<span class="osq-options-header__option">
 							<?php echo esc_html( $texts[ $lang ] ); ?>
@@ -122,20 +122,20 @@ $total_items = count( QuestionDefinitions::get_questions() );
 			<div class="osq-nav-buttons">
 				<button type="button" id="osq-prev-btn" class="osq-btn osq-btn--secondary" style="display: none;">
 					<span class="dashicons dashicons-arrow-left-alt2" style="vertical-align: middle;"></span>
-					<?php esc_html_e( '前へ (Previous)', 'osq-stress-check' ); ?>
+					<?php esc_html_e( '前へ', 'osq-stress-check' ); ?>
 				</button>
 				<button type="button" id="osq-next-btn" class="osq-btn osq-btn--primary">
-					<?php esc_html_e( '次へ (Next)', 'osq-stress-check' ); ?>
+					<?php esc_html_e( '次へ', 'osq-stress-check' ); ?>
 					<span class="dashicons dashicons-arrow-right-alt2" style="vertical-align: middle;"></span>
 				</button>
 			</div>
 			<div class="osq-secondary-actions">
 				<button type="button" id="osq-save-btn" class="osq-btn osq-btn--secondary">
-					<?php esc_html_e( '一時保存 (Save Progress)', 'osq-stress-check' ); ?>
+					<?php esc_html_e( '一時保存', 'osq-stress-check' ); ?>
 				</button>
 			</div>
 			<button type="submit" id="osq-submit-btn" class="osq-btn osq-btn--primary" style="display: none;">
-				<?php esc_html_e( '送信する (Submit)', 'osq-stress-check' ); ?>
+				<?php esc_html_e( '送信する', 'osq-stress-check' ); ?>
 			</button>
 		</div>
 
