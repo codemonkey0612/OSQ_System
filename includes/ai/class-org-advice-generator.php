@@ -175,7 +175,7 @@ class OrgAdviceGenerator {
 		$table = $wpdb->prefix . Schema::AI_ORG_ADVICE_CACHE;
 
 		$rows = $wpdb->get_results( $wpdb->prepare(
-			"SELECT org_value, status, advice_text, is_edited FROM {$table}
+			"SELECT org_value, status, advice_text, is_edited, error_message FROM {$table}
 			 WHERE company_id = %d AND org_level = %s",
 			$company_id, $org_level
 		) );
@@ -186,6 +186,7 @@ class OrgAdviceGenerator {
 				'status'      => $row->status,
 				'advice_text' => $row->status === 'done' ? $row->advice_text : null,
 				'is_edited'   => (bool) $row->is_edited,
+				'error'       => $row->status === 'failed' ? $row->error_message : null,
 			);
 		}
 

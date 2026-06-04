@@ -107,6 +107,16 @@ if ( $can_take_test || $can_view_results ) {
 	}
 }
 
+// ── HR contact info for high-stress employees (Phase 4) ────────────────────────
+$hr_contact = null;
+if ( ( $can_take_test || $can_view_results ) && $employee && isset( $employee->company_id ) && $employee->company_id ) {
+	global $wpdb;
+	$hr_contact = $wpdb->get_row( $wpdb->prepare(
+		"SELECT contact_name, contact_phone, contact_email FROM {$wpdb->prefix}osq_companies WHERE company_id = %d",
+		(int) $employee->company_id
+	) );
+}
+
 // ── Admin/analysis settings ───────────────────────────────────────────────────
 $osq_settings         = get_option( 'osq_settings', array() );
 $enable_group_analysis = isset( $osq_settings['enable_group_analysis'] ) ? (bool) $osq_settings['enable_group_analysis'] : true;
@@ -126,6 +136,10 @@ $panel_titles = array(
 	'profile'   => __( 'プロフィール', 'osq-stress-check' ),
 	'companies' => __( '企業管理', 'osq-stress-check' ),
 );
+?>
+<?php
+// Suppress WP admin bar — it breaks the full-screen flex dashboard layout.
+add_filter( 'show_admin_bar', '__return_false' );
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
@@ -302,6 +316,37 @@ $panel_titles = array(
 								<p><?php echo esc_html( $advice_text ); ?></p>
 							</div>
 						</div>
+						<?php if ( $is_high_stress && $hr_contact && ( $hr_contact->contact_name || $hr_contact->contact_phone || $hr_contact->contact_email ) ) : ?>
+						<div style="margin-top:20px;padding:20px;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;border-left:4px solid #ea580c;">
+							<p style="margin:0 0 14px;font-size:14px;font-weight:600;color:#9a3412;">
+								<span class="dashicons dashicons-phone" style="margin-right:6px;"></span>
+								<?php esc_html_e( '医師による面接指導を希望する場合は、下記まで直接ご連絡ください。', 'osq-stress-check' ); ?>
+							</p>
+							<table style="font-size:13px;line-height:2;color:#431407;">
+								<?php if ( $hr_contact->contact_name ) : ?>
+								<tr>
+									<td style="padding-right:16px;color:#9a3412;font-weight:500;white-space:nowrap;"><?php esc_html_e( '人事部（総務部）担当', 'osq-stress-check' ); ?></td>
+									<td><?php echo esc_html( $hr_contact->contact_name ); ?></td>
+								</tr>
+								<?php endif; ?>
+								<?php if ( $hr_contact->contact_phone ) : ?>
+								<tr>
+									<td style="padding-right:16px;color:#9a3412;font-weight:500;white-space:nowrap;"><?php esc_html_e( '電話番号', 'osq-stress-check' ); ?></td>
+									<td><?php echo esc_html( $hr_contact->contact_phone ); ?></td>
+								</tr>
+								<?php endif; ?>
+								<?php if ( $hr_contact->contact_email ) : ?>
+								<tr>
+									<td style="padding-right:16px;color:#9a3412;font-weight:500;white-space:nowrap;"><?php esc_html_e( 'メールアドレス', 'osq-stress-check' ); ?></td>
+									<td><a href="mailto:<?php echo esc_attr( $hr_contact->contact_email ); ?>" style="color:#ea580c;"><?php echo esc_html( $hr_contact->contact_email ); ?></a></td>
+								</tr>
+								<?php endif; ?>
+							</table>
+							<p style="margin:12px 0 0;font-size:12px;color:#9a3412;opacity:0.8;">
+								<?php esc_html_e( '※ すぐに連絡できない状況の場合、この画面をスクリーンショット等で保存し、後ほどご連絡ください。', 'osq-stress-check' ); ?>
+							</p>
+						</div>
+						<?php endif; ?>
 					</div>
 					<div class="osq-score-explanation">
 						<h4 class="osq-section-header"><span class="dashicons dashicons-chart-bar"></span> <?php esc_html_e( 'スコア詳細 (Score Details)', 'osq-stress-check' ); ?></h4>
@@ -617,6 +662,17 @@ $panel_titles = array(
 					<div class="osq-compliance-alert">
 						<span class="dashicons dashicons-warning"></span>
 						<?php esc_html_e( 'プライバシー保護のため、設定された最小人数を満たすグループのみ表示されます。', 'osq-stress-check' ); ?>
+					</div>
+				</div>
+				<!-- Charts: bar (high stress ratio) + radar (scale averages of top group) -->
+				<div id="osq-analysis-chart-wrap" style="display:none;margin:24px 0;gap:20px;flex-wrap:wrap;">
+					<div style="flex:1;min-width:320px;padding:20px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;">
+						<h4 style="margin:0 0 16px;color:#1e293b;font-size:14px;">高ストレス者割合 グループ別</h4>
+						<canvas id="osq-analysis-bar-chart" style="max-height:260px;"></canvas>
+					</div>
+					<div style="flex:1;min-width:320px;padding:20px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;">
+						<h4 style="margin:0 0 16px;color:#1e293b;font-size:14px;">尺度別平均スコア <span id="osq-radar-group-name" style="font-weight:400;color:#64748b;font-size:12px;"></span></h4>
+						<canvas id="osq-analysis-radar-chart" style="max-height:300px;"></canvas>
 					</div>
 				</div>
 				<div class="osq-analysis-filters">
@@ -976,7 +1032,9 @@ $panel_titles = array(
 
 <style>
 /* ── Layout ──────────────────────────────────────────────────────────────── */
-.osq-admin-dashboard { display:flex; min-height:100vh; background:#f8fafc; font-family:'Inter',system-ui,sans-serif; margin:0; padding:0; width:100vw; max-width:100vw; }
+* { box-sizing:border-box; }
+html, body { margin:0 !important; padding:0 !important; }
+.osq-admin-dashboard { display:flex; min-height:100vh; background:#f8fafc; font-family:'Inter',system-ui,sans-serif; margin:0; padding:0; width:100%; }
 .osq-admin-sidebar { width:260px; background:#1e293b; color:white; display:flex; flex-direction:column; flex-shrink:0; transition:transform 0.3s ease; }
 .osq-sidebar-header { padding:30px 20px; text-align:center; border-bottom:1px solid rgba(255,255,255,0.1); }
 .osq-logo { font-size:22px; font-weight:800; color:#38bdf8; letter-spacing:-1px; }
@@ -990,7 +1048,7 @@ $panel_titles = array(
 .osq-logout-btn:hover { color:white; }
 
 /* ── Main ─────────────────────────────────────────────────────────────────── */
-.osq-admin-main { flex-grow:1; display:flex; flex-direction:column; overflow-x:hidden; }
+.osq-admin-main { flex-grow:1; display:flex; flex-direction:column; overflow-x:hidden; overflow-y:auto; min-height:0; }
 .osq-admin-header { background:white; padding:20px 40px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 3px rgba(0,0,0,0.1); }
 .osq-admin-header h2 { margin:0; font-size:24px; color:#1e293b; font-weight:700; }
 .osq-header-left { display:flex; align-items:center; gap:15px; }
@@ -1410,6 +1468,63 @@ jQuery(document).ready(function($) {
 						$pb.append('<tr><td>' + translateOrgLabel(row.group_label) + '</td><td>' + row.total + '</td><td>' + row.completed + '</td><td>' + rate + '%</td></tr>');
 					});
 				}
+				// Render bar + radar charts.
+				if (aRows.length > 0 && typeof Chart !== 'undefined') {
+					var chartWrap = document.getElementById('osq-analysis-chart-wrap');
+					var ctx = document.getElementById('osq-analysis-bar-chart');
+					if (chartWrap && ctx) {
+						chartWrap.style.display = 'flex';
+						if (window.osqAnalysisBarChart instanceof Chart) { window.osqAnalysisBarChart.destroy(); }
+						var labels = aRows.map(function(r){ return translateOrgLabel(r.group_label); });
+						var data = aRows.map(function(r){ return parseFloat(r.high_stress_ratio) || 0; });
+						window.osqAnalysisBarChart = new Chart(ctx, {
+							type: 'bar',
+							data: { labels: labels, datasets: [{ label: '高ストレス割合 (%)', data: data,
+								backgroundColor: data.map(function(v){ return v >= 25 ? 'rgba(220,38,38,0.7)' : 'rgba(22,101,52,0.7)'; }), borderWidth: 1 }] },
+							options: { responsive: true, plugins: { legend: { display: false } },
+								scales: { y: { beginAtZero: true, max: 100, title: { display: true, text: '割合 (%)' } } } }
+						});
+					}
+					// Radar chart: overlay scale averages of ALL groups for comparison.
+					var radarCtx = document.getElementById('osq-analysis-radar-chart');
+					if (radarCtx) {
+						var scaleOrder = ['quantitative_demands','qualitative_demands','physical_workload','interpersonal_stress','environment_stress','job_control','skill_utilization','job_fit','reward','vigor','irritability','fatigue','anxiety','depression','physical_complaints','supervisor_support','colleague_support','family_support'];
+						var scaleLabelsJa = { quantitative_demands:'量的負担', qualitative_demands:'質的負担', physical_workload:'身体的負担', interpersonal_stress:'対人関係', environment_stress:'職場環境', job_control:'仕事の裁量', skill_utilization:'技能の活用', job_fit:'仕事の適合', reward:'働きがい', vigor:'活気', irritability:'イライラ感', fatigue:'疲労感', anxiety:'不安感', depression:'抑うつ感', physical_complaints:'身体愁訴', supervisor_support:'上司支援', colleague_support:'同僚支援', family_support:'家族支援' };
+						var palette = [
+							{ bg:'rgba(220,38,38,0.12)',  border:'rgb(220,38,38)'  },
+							{ bg:'rgba(37,99,235,0.12)',  border:'rgb(37,99,235)'  },
+							{ bg:'rgba(22,163,74,0.12)',  border:'rgb(22,163,74)'  },
+							{ bg:'rgba(202,138,4,0.12)',  border:'rgb(202,138,4)'  },
+							{ bg:'rgba(147,51,234,0.12)', border:'rgb(147,51,234)' },
+							{ bg:'rgba(8,145,178,0.12)',  border:'rgb(8,145,178)'  }
+						];
+						// Build label set from the first group that has scale_averages.
+						var rLabels = [];
+						var withScales = aRows.filter(function(r){ return r.scale_averages && Object.keys(r.scale_averages).length; });
+						if (withScales.length) {
+							scaleOrder.forEach(function(key) {
+								if (withScales[0].scale_averages[key] !== undefined) { rLabels.push(scaleLabelsJa[key] || key); }
+							});
+							var datasets = withScales.map(function(grp, i) {
+								var c = palette[i % palette.length];
+								var vals = [];
+								scaleOrder.forEach(function(key) {
+									if (grp.scale_averages[key] !== undefined) { vals.push(parseFloat(grp.scale_averages[key]) || 0); }
+								});
+								return { label: translateOrgLabel(grp.group_label), data: vals, fill: true,
+									backgroundColor: c.bg, borderColor: c.border, pointBackgroundColor: c.border, borderWidth: 2 };
+							});
+							$('#osq-radar-group-name').text('（全グループ比較）');
+							if (window.osqAnalysisRadarChart instanceof Chart) { window.osqAnalysisRadarChart.destroy(); }
+							window.osqAnalysisRadarChart = new Chart(radarCtx, {
+								type: 'radar',
+								data: { labels: rLabels, datasets: datasets },
+								options: { responsive: true, plugins: { legend: { display: true, position: 'bottom' } },
+									scales: { r: { beginAtZero: true, suggestedMax: 5 } } }
+							});
+						}
+					}
+				}
 			}
 		});
 	}
@@ -1571,7 +1686,8 @@ jQuery(document).ready(function($) {
 			} else if (info.status === 'pending' || info.status === 'processing') {
 				cardHtml += '<p style="color:#64748b;font-size:13px;"><span class="dashicons dashicons-update osq-spin"></span> 生成中...</p>';
 			} else if (info.status === 'failed') {
-				cardHtml += '<p style="color:#dc2626;font-size:13px;">生成に失敗しました。再生成をお試しください。</p>';
+				var failMsg = info.error ? $('<div>').text(info.error).html() : '生成に失敗しました。再生成をお試しください。';
+				cardHtml += '<p style="color:#dc2626;font-size:13px;">' + failMsg + '</p>';
 			}
 			cardHtml += '</div>';
 			$container.append(cardHtml);

@@ -19,9 +19,9 @@ $sections = array(
 	'D' => __( 'D. 満足度について', 'osq-stress-check' ),
 );
 
-$curr_locale = get_locale();
-$lang        = ( 'ja' === $curr_locale ) ? 'ja' : 'en';
-$text_key    = 'ja' === $lang ? 'text_ja' : 'text_en';
+// Questionnaire content is always displayed in Japanese for this deployment.
+$lang        = 'ja';
+$text_key    = 'text_ja';
 $total_items = count( QuestionDefinitions::get_questions() );
 ?>
 
