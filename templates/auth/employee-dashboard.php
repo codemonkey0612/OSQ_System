@@ -435,16 +435,7 @@ if ( $response && $response->is_complete && $employee ) {
 			<section id="tab-settings" class="osq-tab-panel">
 				<div class="osq-panel-card" style="max-width: 600px;">
 					<h3 style="margin-top: 0; margin-bottom: 20px;"><?php esc_html_e( '設定', 'osq-stress-check' ); ?></h3>
-					<div class="osq-form-row">
-						<label><?php esc_html_e( 'システム言語', 'osq-stress-check' ); ?></label>
-						<form method="get" action="">
-							<select name="osq_lang" onchange="this.form.submit()" class="osq-input">
-								<?php $curr_locale = get_locale(); ?>
-								<option value="en_US" <?php selected( $curr_locale, 'en_US' ); ?>><?php esc_html_e( '英語', 'osq-stress-check' ); ?></option>
-								<option value="ja" <?php selected( $curr_locale, 'ja' ); ?>><?php esc_html_e( '日本語', 'osq-stress-check' ); ?></option>
-							</select>
-						</form>
-					</div>
+					<p style="color:#64748b;font-size:14px;"><?php esc_html_e( '現在、変更可能な設定項目はありません。', 'osq-stress-check' ); ?></p>
 				</div>
 			</section>
 		</div>

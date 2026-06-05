@@ -284,13 +284,6 @@ $active_sidebar_key = $sidebar_key_map[ $initial_tab ] ?? '';
 				?>
 				<form id="osq-settings-form" class="osq-admin-form">
 					<div class="osq-form-row">
-						<label><?php esc_html_e( 'システム言語', 'osq-stress-check' ); ?></label>
-						<select name="language" class="osq-select">
-							<option value="ja" <?php selected( $current_language, 'ja' ); ?>><?php esc_html_e( '日本語', 'osq-stress-check' ); ?></option>
-							<option value="en" <?php selected( $current_language, 'en' ); ?>><?php esc_html_e( '英語', 'osq-stress-check' ); ?></option>
-						</select>
-					</div>
-					<div class="osq-form-row">
 						<label><?php esc_html_e( 'セッションタイムアウト（分）', 'osq-stress-check' ); ?></label>
 						<input type="number" name="session_timeout" value="<?php echo esc_attr( $session_timeout ); ?>" class="osq-input-small">
 					</div>
@@ -1403,7 +1396,6 @@ jQuery(document).ready(function($) {
 			data: {
 				action: 'osq_admin_save_settings',
 				nonce: ajaxVars.nonce,
-				language: $form.find('select[name="language"]').val(),
 				session_timeout: $form.find('input[name="session_timeout"]').val(),
 				enable_group_analysis: $form.find('input[name="enable_group_analysis"]').is(':checked') ? 1 : 0
 			},
@@ -1415,12 +1407,7 @@ jQuery(document).ready(function($) {
 						.text(response.data.message)
 						.show();
 					
-					// Update language cookie if changed
-					const lang = response.data.language;
-					const cookieValue = lang === 'ja' ? 'ja' : 'en_US';
-					document.cookie = 'osq_lang=' + cookieValue + '; path=/; max-age=' + (365 * 24 * 60 * 60);
-					
-					// Reload page to apply language changes
+						// Reload to apply saved settings
 					setTimeout(function() {
 						location.reload();
 					}, 1500);

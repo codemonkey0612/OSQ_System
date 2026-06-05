@@ -176,34 +176,7 @@ $db = \OSQ\Plugin::get_instance()->db();
 
 			<!-- Settings Tab -->
 			<section id="tab-settings" class="osq-tab-panel">
-				<?php 
-				$osq_settings = get_option( 'osq_settings', array() );
-				$global_language = $osq_settings['language'] ?? 'ja';
-				
-				// Officer UI should respect the individual cookie first, then fallback
-				$cookie_lang = isset( $_COOKIE['osq_lang'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['osq_lang'] ) ) : '';
-				if ( 'en_US' === $cookie_lang ) {
-					$current_language = 'en';
-				} elseif ( 'ja' === $cookie_lang ) {
-					$current_language = 'ja';
-				} else {
-					$current_language = $global_language;
-				}
-				?>
-				<form id="osq-settings-form" class="osq-admin-form">
-					<!-- The General Admin controls system-wide settings like timeout, so Officer only sees language preference -->
-					<div class="osq-form-row">
-						<label><?php esc_html_e( 'システム言語', 'osq-stress-check' ); ?></label>
-						<select name="language" class="osq-select">
-							<option value="ja" <?php selected( $current_language, 'ja' ); ?>><?php esc_html_e( '日本語', 'osq-stress-check' ); ?></option>
-							<option value="en" <?php selected( $current_language, 'en' ); ?>><?php esc_html_e( '英語', 'osq-stress-check' ); ?></option>
-						</select>
-					</div>
-					<div class="osq-form-actions">
-						<button type="submit" class="osq-button osq-button--primary"><?php esc_html_e( '設定を保存する', 'osq-stress-check' ); ?></button>
-						<div id="osq-settings-message" class="osq-settings-message" style="display: none; margin-top: 15px;"></div>
-					</div>
-				</form>
+				<p style="color:#64748b;font-size:14px;"><?php esc_html_e( '現在、変更可能な設定項目はありません。', 'osq-stress-check' ); ?></p>
 			</section>
 		</div>
 	</main>

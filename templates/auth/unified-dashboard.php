@@ -747,13 +747,6 @@ add_filter( 'show_admin_bar', '__return_false' );
 			<section id="ud-panel-settings" class="ud-panel <?php echo 'settings' === $initial_panel ? 'active' : ''; ?>">
 				<form id="osq-settings-form" class="osq-admin-form">
 					<div class="osq-form-row">
-						<label><?php esc_html_e( 'システム言語', 'osq-stress-check' ); ?></label>
-						<select name="language" class="osq-select">
-							<option value="ja" <?php selected( $current_language, 'ja' ); ?>><?php esc_html_e( '日本語', 'osq-stress-check' ); ?></option>
-							<option value="en" <?php selected( $current_language, 'en' ); ?>><?php esc_html_e( '英語', 'osq-stress-check' ); ?></option>
-						</select>
-					</div>
-					<div class="osq-form-row">
 						<label><?php esc_html_e( 'セッションタイムアウト（分）', 'osq-stress-check' ); ?></label>
 						<input type="number" name="session_timeout" value="<?php echo esc_attr( $session_timeout ); ?>" class="osq-input-small">
 					</div>
@@ -851,22 +844,6 @@ add_filter( 'show_admin_bar', '__return_false' );
 						<div class="osq-form-actions">
 							<button type="submit" class="osq-button osq-button--primary"><?php esc_html_e( 'パスワードを更新', 'osq-stress-check' ); ?></button>
 							<div id="osq-officer-password-message" class="osq-settings-message" style="display:none;margin-top:15px;"></div>
-						</div>
-					</form>
-				</div>
-				<div class="osq-panel-card" style="max-width:500px;margin-top:20px;">
-					<h3 style="margin-top:0;margin-bottom:20px;"><?php esc_html_e( '言語設定', 'osq-stress-check' ); ?></h3>
-					<?php
-					$cookie_lang = isset( $_COOKIE['osq_lang'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['osq_lang'] ) ) : '';
-					$profile_lang = 'en_US' === $cookie_lang ? 'en' : ( 'ja' === $cookie_lang ? 'ja' : ( $osq_settings['language'] ?? 'ja' ) );
-					?>
-					<form method="get" action="">
-						<div class="osq-form-row">
-							<label><?php esc_html_e( 'システム言語', 'osq-stress-check' ); ?></label>
-							<select name="osq_lang" onchange="this.form.submit()" class="osq-select">
-								<option value="ja" <?php selected( $profile_lang, 'ja' ); ?>><?php esc_html_e( '日本語', 'osq-stress-check' ); ?></option>
-								<option value="en" <?php selected( $profile_lang, 'en' ); ?>><?php esc_html_e( '英語', 'osq-stress-check' ); ?></option>
-							</select>
 						</div>
 					</form>
 				</div>
@@ -1598,7 +1575,6 @@ jQuery(document).ready(function($) {
 			url: ajaxVars.ajax_url, type: 'POST',
 			data: {
 				action: 'osq_admin_save_settings', nonce: ajaxVars.nonce,
-				language: $form.find('select[name="language"]').val(),
 				session_timeout: $form.find('input[name="session_timeout"]').val(),
 				min_group_size: $form.find('input[name="min_group_size"]').val(),
 				enable_group_analysis: $form.find('input[name="enable_group_analysis"]').is(':checked') ? 1 : 0,
@@ -1610,8 +1586,6 @@ jQuery(document).ready(function($) {
 			success: function(response) {
 				if (response.success) {
 					$message.removeClass('osq-message--error').addClass('osq-message--success').text(response.data.message).show();
-					var lang = response.data.language;
-					document.cookie = 'osq_lang=' + (lang === 'ja' ? 'ja' : 'en_US') + '; path=/; max-age=' + (365 * 24 * 60 * 60);
 					setTimeout(function() { location.reload(); }, 1500);
 				} else {
 					$message.removeClass('osq-message--success').addClass('osq-message--error').text((response.data && response.data.message) || 'Error saving settings').show();

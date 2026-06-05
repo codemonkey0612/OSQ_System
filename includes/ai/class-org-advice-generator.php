@@ -27,6 +27,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 class OrgAdviceGenerator {
 
 	/**
+	 * Hard cap on advice length (characters). Backstop for PDF/UI layout in
+	 * case the prompt-level "1000文字以内" instruction is exceeded.
+	 */
+	const MAX_ADVICE_CHARS = 1000;
+
+	/**
 	 * Enqueue AI generation jobs for ALL distinct org groups at the given level.
 	 * Called when a user switches the org level in the analysis tab.
 	 * Skips groups that already have done+non-edited advice cached.
@@ -202,6 +208,12 @@ class OrgAdviceGenerator {
 	 * @return string|\WP_Error
 	 */
 	public function generate( $company_id, $org_level, $org_value ) {
+		// Pin the tenant context to the job's company. This runs from WP-Cron
+		// where no super-admin transient is set, so GroupAnalyzer's global
+		// current_company_id() would otherwise resolve to the wrong tenant.
+		$prev_company = \OSQ\Database\DbManager::current_company_id();
+		\OSQ\Database\DbManager::set_active_company_id( (int) $company_id );
+
 		$analyzer = new GroupAnalyzer();
 		$filter   = array(
 			$org_level => $org_value,
@@ -209,6 +221,9 @@ class OrgAdviceGenerator {
 		);
 
 		$result = $analyzer->analyze( $filter );
+
+		// Restore the previous context immediately after the scoped query.
+		\OSQ\Database\DbManager::set_active_company_id( $prev_company );
 
 		if ( null === $result ) {
 			return new \WP_Error( 'osq_org_ai_no_data', 'グループのデータが不足しているため分析できません。' );
@@ -248,6 +263,10 @@ class OrgAdviceGenerator {
 			},
 			$org_value
 		);
+
+		// Safety backstop: cap advice length so PDF/UI layout stays clean
+		// even if the prompt-level limit is occasionally exceeded.
+		$advice = $this->cap_length( $advice, self::MAX_ADVICE_CHARS );
 
 		// Cache the result.
 		$this->cache_result( $company_id, $org_level, $org_value, $advice );
@@ -339,6 +358,38 @@ class OrgAdviceGenerator {
 				'org_value'  => $org_value,
 			)
 		);
+	}
+
+	/**
+	 * Cap advice to a maximum length, trimming at the last sentence boundary
+	 * (。！？ or newline) before the limit so it never cuts mid-sentence.
+	 *
+	 * @param string $text
+	 * @param int    $max
+	 * @return string
+	 */
+	private function cap_length( $text, $max ) {
+		if ( mb_strlen( $text ) <= $max ) {
+			return $text;
+		}
+
+		$slice = mb_substr( $text, 0, $max );
+
+		// Find the last sentence-ending punctuation within the slice.
+		$best = 0;
+		foreach ( array( '。', '！', '？', "\n" ) as $mark ) {
+			$pos = mb_strrpos( $slice, $mark );
+			if ( false !== $pos && $pos > $best ) {
+				$best = $pos + ( "\n" === $mark ? 0 : 1 );
+			}
+		}
+
+		// Only trim at the boundary if it keeps a reasonable amount of text.
+		if ( $best >= (int) ( $max * 0.5 ) ) {
+			return rtrim( mb_substr( $slice, 0, $best ) );
+		}
+
+		return rtrim( $slice );
 	}
 
 	/**

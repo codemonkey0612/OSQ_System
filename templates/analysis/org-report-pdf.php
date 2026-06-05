@@ -68,9 +68,13 @@ $top3 = array_slice( $sorted, 0, 3 );
   .osq-radar-item h3 { font-size: 13px; font-weight: 700; margin-bottom: 8px; color: #dc2626; }
   .osq-disclaimer { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 14px 16px; font-size: 12px; color: #64748b; line-height: 1.7; }
   .osq-disclaimer strong { color: #1e293b; }
+  .osq-advice-block { page-break-inside: avoid; break-inside: avoid; }
   @media print {
     .osq-report { max-width: 100%; padding: 0; }
     .osq-chart-wrap canvas { max-height: 220px; }
+    .osq-advice-block { page-break-inside: avoid; break-inside: avoid; overflow: visible !important; }
+    .osq-advice-block p { overflow: visible !important; }
+    .osq-report-section h2 { page-break-after: avoid; }
   }
 </style>
 
@@ -154,21 +158,21 @@ $top3 = array_slice( $sorted, 0, 3 );
 
   <!-- AI Advice per group (Phase 4) -->
   <?php if ( ! empty( $org_advice ) && array_filter( $org_advice ) ) : ?>
-  <div class="osq-report-section">
-    <h2>組織別AIアドバイス</h2>
-    <p style="font-size:12px;color:#64748b;margin-bottom:16px;">以下のアドバイスは集計データに基づきAIが生成した参考情報です。特定の原因を断定するものではありません。</p>
+  <div class="osq-report-section osq-advice-wrap">
+    <h2 style="page-break-after:avoid;">組織別AIアドバイス</h2>
+    <p style="font-size:12px;color:#64748b;margin-bottom:16px;page-break-after:avoid;">以下のアドバイスは集計データに基づきAIが生成した参考情報です。特定の原因を断定するものではありません。</p>
     <?php foreach ( $analysis_rows as $row ) :
       $advice = $org_advice[ $row['group_label'] ] ?? null;
       if ( ! $advice ) continue;
     ?>
-    <div style="margin-bottom:20px;padding:16px;background:#f8fafc;border-left:4px solid #166534;border-radius:4px;">
-      <strong style="font-size:13px;color:#166534;display:block;margin-bottom:8px;">
+    <div class="osq-advice-block" style="margin-bottom:20px;padding:16px;background:#f8fafc;border-left:4px solid #166534;border-radius:4px;page-break-inside:avoid;break-inside:avoid;overflow:visible;">
+      <strong style="font-size:13px;color:#166534;display:block;margin-bottom:8px;page-break-after:avoid;">
         <?php echo esc_html( $row['group_label'] ); ?>
         <span style="font-weight:400;color:#64748b;font-size:12px;margin-left:8px;">
           （高ストレス割合: <?php echo round( (float) $row['high_stress_ratio'], 1 ); ?>%）
         </span>
       </strong>
-      <p style="font-size:13px;line-height:1.8;color:#334155;margin:0;white-space:pre-wrap;"><?php echo esc_html( $advice ); ?></p>
+      <p style="font-size:13px;line-height:1.8;color:#334155;margin:0;white-space:pre-wrap;overflow:visible;"><?php echo esc_html( $advice ); ?></p>
     </div>
     <?php endforeach; ?>
   </div>

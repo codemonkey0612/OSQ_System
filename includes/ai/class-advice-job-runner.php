@@ -123,6 +123,14 @@ class AdviceJobRunner {
 		global $wpdb;
 		$table = $wpdb->prefix . \OSQ\Database\Schema::AI_ORG_ADVICE_CACHE;
 
+		// Recover stuck jobs: if a prior cron run died mid-generation (timeout/
+		// memory), a row can be left in 'processing' forever. Reset any that have
+		// been 'processing' for more than 5 minutes back to 'pending' so they retry.
+		$wpdb->query(
+			"UPDATE {$table} SET status = 'pending'
+			 WHERE status = 'processing' AND updated_at < ( NOW() - INTERVAL 5 MINUTE )"
+		);
+
 		$jobs = $wpdb->get_results( $wpdb->prepare(
 			"SELECT * FROM {$table} WHERE status = 'pending' ORDER BY updated_at ASC LIMIT %d",
 			self::BATCH_SIZE

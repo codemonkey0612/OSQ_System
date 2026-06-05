@@ -42,8 +42,14 @@ class I18n {
 	 * @return string Modified locale.
 	 */
 	public function determine_locale( $locale ) {
+		// The OSQ product is Japanese-only. Full English localization was never
+		// completed, so we force Japanese here. This also neutralizes any stale
+		// `osq_lang=en_US` cookie left over from the removed language toggle,
+		// which would otherwise cause partial-English display.
+		return 'ja';
+
 		$original_locale = $locale;
-		
+
 		// Check for language cookie
 		if ( isset( $_COOKIE['osq_lang'] ) ) {
 			$cookie_locale = $_COOKIE['osq_lang'] === 'ja' ? 'ja' : 'en_US';
