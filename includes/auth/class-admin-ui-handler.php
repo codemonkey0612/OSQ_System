@@ -64,6 +64,10 @@ class AdminUiHandler {
 		add_action( 'wp_ajax_osq_admin_regenerate_org_advice',    array( $this, 'ajax_regenerate_org_advice' ) );
 		add_action( 'wp_ajax_osq_admin_save_org_advice',          array( $this, 'ajax_save_org_advice' ) );
 		add_action( 'wp_ajax_osq_admin_get_labor_report',         array( $this, 'ajax_get_labor_report' ) );
+		add_action( 'wp_ajax_osq_admin_get_email_panel',          array( $this, 'ajax_get_email_panel' ) );
+		add_action( 'wp_ajax_osq_admin_save_campaign',            array( $this, 'ajax_save_campaign' ) );
+		add_action( 'wp_ajax_osq_admin_send_invitations',         array( $this, 'ajax_send_invitations' ) );
+		add_action( 'wp_ajax_osq_admin_send_reminders_now',       array( $this, 'ajax_send_reminders_now' ) );
 		add_action( 'wp_ajax_osq_compile_mo', array( $this, 'ajax_compile_mo' ) );
 		add_action( 'wp_ajax_osq_test_openai_connection', array( $this, 'ajax_test_openai_connection' ) );
 
@@ -1324,6 +1328,159 @@ class AdminUiHandler {
 			'interviews'       => $interviews,
 			'physician_name'   => $company_row->physician_name ?? '—',
 		) );
+	}
+
+	/**
+	 * AJAX: data for the email-distribution panel (campaign + invite template + counts).
+	 */
+	public function ajax_get_email_panel() {
+		check_ajax_referer( 'osq_admin_nonce', 'nonce' );
+		if ( ! $this->is_osq_admin( get_current_user_id() ) ) {
+			wp_send_json_error( 'unauthorized' );
+		}
+
+		global $wpdb;
+		$company_id = \OSQ\Database\DbManager::current_company_id();
+
+		$campaign = $wpdb->get_row( $wpdb->prepare(
+			"SELECT start_date, deadline FROM {$wpdb->prefix}" . \OSQ\Database\Schema::SURVEY_CAMPAIGNS . "
+			 WHERE company_id = %d AND is_active = 1 ORDER BY campaign_id DESC LIMIT 1",
+			$company_id
+		) );
+
+		$tpl     = \OSQ\Email\EmailTemplateManager::get_template( \OSQ\Email\EmailTemplateManager::SURVEY_INVITE );
+
+		$total_with_email = count( \OSQ\Email\ReminderScheduler::get_survey_recipients( $company_id ) );
+		$non_respondents  = count( \OSQ\Email\ReminderScheduler::get_non_respondents( $company_id ) );
+
+		wp_send_json_success( array(
+			'start_date'       => $campaign->start_date ?? null,
+			'deadline'         => $campaign->deadline ?? null,
+			'invite_subject'   => $tpl['subject'],
+			'invite_body'      => $tpl['body'],
+			'total_with_email' => $total_with_email,
+			'non_respondents'  => $non_respondents,
+			'faq_url'          => \OSQ\Email\MailVars::faq_url(),
+		) );
+	}
+
+	/**
+	 * AJAX: save the campaign deadline (and ensure a campaign row exists).
+	 */
+	public function ajax_save_campaign() {
+		check_ajax_referer( 'osq_admin_nonce', 'nonce' );
+		if ( ! $this->is_osq_admin( get_current_user_id() ) ) {
+			wp_send_json_error( 'unauthorized' );
+		}
+		$deadline = sanitize_text_field( wp_unslash( $_POST['deadline'] ?? '' ) );
+		$deadline = $deadline ? gmdate( 'Y-m-d H:i:s', strtotime( $deadline ) ) : null;
+		$this->ensure_campaign( \OSQ\Database\DbManager::current_company_id(), null, $deadline );
+		wp_send_json_success();
+	}
+
+	/**
+	 * AJAX: send the (admin-edited) invitation to all employees with an email.
+	 */
+	public function ajax_send_invitations() {
+		check_ajax_referer( 'osq_admin_nonce', 'nonce' );
+		if ( ! $this->is_osq_admin( get_current_user_id() ) ) {
+			wp_send_json_error( 'unauthorized' );
+		}
+
+		$subject  = sanitize_text_field( wp_unslash( $_POST['subject'] ?? '' ) );
+		$body     = wp_kses_post( wp_unslash( $_POST['body'] ?? '' ) );
+		$deadline = sanitize_text_field( wp_unslash( $_POST['deadline'] ?? '' ) );
+		$deadline = $deadline ? gmdate( 'Y-m-d H:i:s', strtotime( $deadline ) ) : null;
+
+		if ( '' === $subject || '' === $body ) {
+			wp_send_json_error( array( 'message' => '件名と本文を入力してください。' ) );
+		}
+
+		global $wpdb;
+		$company_id = \OSQ\Database\DbManager::current_company_id();
+
+		// Start the campaign (sets start_date now if not already set).
+		$this->ensure_campaign( $company_id, current_time( 'mysql' ), $deadline );
+
+		$employees = \OSQ\Email\ReminderScheduler::get_survey_recipients( $company_id );
+
+		$mailer        = new \OSQ\Email\EmailService();
+		$base          = \OSQ\Email\MailVars::company_base( $company_id );
+		$deadline_disp = $deadline ? date_i18n( 'Y年m月d日', strtotime( $deadline ) ) : '—';
+		$sent          = 0;
+
+		foreach ( $employees as $emp ) {
+			if ( ! is_email( $emp->email ) ) {
+				continue;
+			}
+			$vars = array_merge( $base, array(
+				'氏名'    => $emp->name,
+				'受検URL' => \OSQ\Email\MailVars::survey_url(),
+				'締切日'  => $deadline_disp,
+			) );
+			if ( $mailer->send_custom( $emp->email, $subject, $body, $vars, $company_id, \OSQ\Email\EmailTemplateManager::SURVEY_INVITE, (int) $emp->employee_id ) ) {
+				$sent++;
+			}
+		}
+
+		wp_send_json_success( array( 'sent' => $sent, 'total' => count( $employees ) ) );
+	}
+
+	/**
+	 * AJAX: immediately send reminders to non-respondents.
+	 */
+	public function ajax_send_reminders_now() {
+		check_ajax_referer( 'osq_admin_nonce', 'nonce' );
+		if ( ! $this->is_osq_admin( get_current_user_id() ) ) {
+			wp_send_json_error( 'unauthorized' );
+		}
+		global $wpdb;
+		$company_id = \OSQ\Database\DbManager::current_company_id();
+		$campaign   = $wpdb->get_row( $wpdb->prepare(
+			"SELECT * FROM {$wpdb->prefix}" . \OSQ\Database\Schema::SURVEY_CAMPAIGNS . "
+			 WHERE company_id = %d AND is_active = 1 ORDER BY campaign_id DESC LIMIT 1",
+			$company_id
+		) );
+		if ( ! $campaign ) {
+			$this->ensure_campaign( $company_id, current_time( 'mysql' ), null );
+			$campaign = (object) array( 'deadline' => null );
+		}
+		$scheduler = new \OSQ\Email\ReminderScheduler();
+		$sent      = $scheduler->send_reminders_for_company( $company_id, $campaign );
+		wp_send_json_success( array( 'sent' => $sent ) );
+	}
+
+	/**
+	 * Ensure an active campaign row exists for a company; update start/deadline.
+	 *
+	 * @param int         $company_id
+	 * @param string|null $start_date Set start only if provided AND not already set.
+	 * @param string|null $deadline
+	 * @return void
+	 */
+	private function ensure_campaign( $company_id, $start_date, $deadline ) {
+		global $wpdb;
+		$table = $wpdb->prefix . \OSQ\Database\Schema::SURVEY_CAMPAIGNS;
+		$row   = $wpdb->get_row( $wpdb->prepare(
+			"SELECT campaign_id, start_date FROM {$table} WHERE company_id = %d AND is_active = 1 ORDER BY campaign_id DESC LIMIT 1",
+			$company_id
+		) );
+
+		if ( $row ) {
+			$update = array();
+			if ( $start_date && empty( $row->start_date ) ) { $update['start_date'] = $start_date; }
+			if ( null !== $deadline ) { $update['deadline'] = $deadline; }
+			if ( ! empty( $update ) ) {
+				$wpdb->update( $table, $update, array( 'campaign_id' => $row->campaign_id ) );
+			}
+		} else {
+			$wpdb->insert( $table, array(
+				'company_id' => $company_id,
+				'start_date' => $start_date,
+				'deadline'   => $deadline,
+				'is_active'  => 1,
+			) );
+		}
 	}
 
 	/**

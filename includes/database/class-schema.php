@@ -24,7 +24,7 @@ class Schema {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.6.3';
+	const VERSION = '1.7.0';
 
 	/**
 	 * Table names (without prefix).
@@ -40,6 +40,10 @@ class Schema {
 	const AI_ORG_ADVICE_CACHE    = 'osq_ai_org_advice_cache';
 	const RESPONSE_HISTORY   = 'osq_response_history';
 	const COMPANIES          = 'osq_companies';
+	const EMAIL_TEMPLATES    = 'osq_email_templates';
+	const EMAIL_LOG          = 'osq_email_log';
+	const SURVEY_CAMPAIGNS   = 'osq_survey_campaigns';
+	const PASSWORD_RESETS    = 'osq_password_resets';
 
 	/**
 	 * Default company_id assigned to all pre-Phase-3a data during migration.
@@ -270,6 +274,69 @@ class Schema {
 			UNIQUE KEY company_org (company_id, org_level, org_value(100)),
 			KEY status (status),
 			KEY company_id (company_id)
+		) {$charset_collate};";
+
+		// Table: osq_email_templates — master email templates managed by wellanc (Phase 5).
+		$table_email_templates = $wpdb->prefix . self::EMAIL_TEMPLATES;
+		$sql[] = "CREATE TABLE {$table_email_templates} (
+			template_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			template_key varchar(50) NOT NULL,
+			subject varchar(255) NOT NULL DEFAULT '',
+			body longtext NOT NULL,
+			is_active tinyint(1) NOT NULL DEFAULT 1,
+			updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			PRIMARY KEY  (template_id),
+			UNIQUE KEY template_key (template_key)
+		) {$charset_collate};";
+
+		// Table: osq_email_log — audit + dedup of every email sent (Phase 5).
+		$table_email_log = $wpdb->prefix . self::EMAIL_LOG;
+		$sql[] = "CREATE TABLE {$table_email_log} (
+			log_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			company_id bigint(20) unsigned DEFAULT NULL,
+			template_key varchar(50) NOT NULL,
+			recipient varchar(255) NOT NULL,
+			employee_id bigint(20) unsigned DEFAULT NULL,
+			subject varchar(255) DEFAULT NULL,
+			status varchar(20) NOT NULL DEFAULT 'sent',
+			error_message text DEFAULT NULL,
+			sent_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY  (log_id),
+			KEY company_id (company_id),
+			KEY template_key (template_key),
+			KEY employee_id (employee_id)
+		) {$charset_collate};";
+
+		// Table: osq_survey_campaigns — per-company survey window for reminders (Phase 5).
+		$table_campaigns = $wpdb->prefix . self::SURVEY_CAMPAIGNS;
+		$sql[] = "CREATE TABLE {$table_campaigns} (
+			campaign_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			company_id bigint(20) unsigned NOT NULL,
+			start_date datetime DEFAULT NULL,
+			deadline datetime DEFAULT NULL,
+			is_active tinyint(1) NOT NULL DEFAULT 1,
+			reminder1_sent_at datetime DEFAULT NULL,
+			reminder2_sent_at datetime DEFAULT NULL,
+			reminder_final_sent_at datetime DEFAULT NULL,
+			created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			PRIMARY KEY  (campaign_id),
+			UNIQUE KEY company_active (company_id, is_active),
+			KEY company_id (company_id)
+		) {$charset_collate};";
+
+		// Table: osq_password_resets — self-service password reset tokens (Phase 5).
+		$table_pw_resets = $wpdb->prefix . self::PASSWORD_RESETS;
+		$sql[] = "CREATE TABLE {$table_pw_resets} (
+			reset_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			wp_user_id bigint(20) unsigned NOT NULL,
+			token_hash varchar(255) NOT NULL,
+			expires_at datetime NOT NULL,
+			used_at datetime DEFAULT NULL,
+			created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY  (reset_id),
+			KEY token_hash (token_hash),
+			KEY wp_user_id (wp_user_id)
 		) {$charset_collate};";
 
 		return $sql;

@@ -172,9 +172,12 @@ class CompaniesUiHandler {
 			'org_label_4'    => sanitize_text_field( $_POST['org_label_4'] ?? '' ) ?: null,
 			'org_label_5'    => sanitize_text_field( $_POST['org_label_5'] ?? '' ) ?: null,
 			'min_group_size' => absint( $_POST['min_group_size'] ?? 5 ),
+			'contact_name'   => sanitize_text_field( $_POST['contact_name'] ?? '' ) ?: null,
+			'contact_phone'  => sanitize_text_field( $_POST['contact_phone'] ?? '' ) ?: null,
+			'contact_email'  => sanitize_email( $_POST['contact_email'] ?? '' ) ?: null,
 			'is_active'      => absint( $_POST['is_active'] ?? 1 ),
 		);
-		$formats = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%d' );
+		$formats = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%d' );
 
 		// Clear the org-label cache for this company so fresh data is served immediately.
 		if ( $company_id ) {
@@ -193,7 +196,25 @@ class CompaniesUiHandler {
 		}
 
 		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE company_id = %d", $new_id ) );
-		wp_send_json_success( $row );
+
+		// On creation, optionally provision an admin account + send credentials (Phase 5).
+		$provision = null;
+		$admin_email = sanitize_email( $_POST['admin_email'] ?? '' );
+		if ( ! $company_id && $admin_email && is_email( $admin_email ) ) {
+			$result = \OSQ\Email\CompanyProvisioner::provision_admin(
+				$new_id,
+				$data['company_name'],
+				$admin_email,
+				sanitize_text_field( $_POST['admin_name'] ?? '' )
+			);
+			if ( is_wp_error( $result ) ) {
+				$provision = array( 'ok' => false, 'message' => $result->get_error_message() );
+			} else {
+				$provision = array( 'ok' => true, 'login_id' => $result['employee_number'] );
+			}
+		}
+
+		wp_send_json_success( array( 'company' => $row, 'provision' => $provision ) );
 	}
 
 	public function ajax_delete_company() {
@@ -252,11 +273,32 @@ class CompaniesUiHandler {
 		$demo = $wpdb->get_row( "SELECT company_id FROM {$wpdb->prefix}osq_companies WHERE is_demo = 1 LIMIT 1" );
 		if ( $demo ) {
 			$cid = (int) $demo->company_id;
+			// Remove the demo employees' login accounts first (avoid orphans).
+			$this->delete_company_users( $wpdb, $cid );
 			$wpdb->delete( $wpdb->prefix . \OSQ\Database\Schema::RESPONSES, array( 'company_id' => $cid ), array( '%d' ) );
 			$wpdb->delete( $wpdb->prefix . \OSQ\Database\Schema::EMPLOYEES, array( 'company_id' => $cid ), array( '%d' ) );
 		}
 		$this->seed_demo_company( $wpdb );
 		wp_send_json_success( array( 'message' => 'デモデータをリセットしました。' ) );
+	}
+
+	/**
+	 * Delete the WP user accounts linked to a company's employees.
+	 *
+	 * @param \wpdb $wpdb
+	 * @param int   $company_id
+	 * @return void
+	 */
+	private function delete_company_users( $wpdb, $company_id ) {
+		require_once ABSPATH . 'wp-admin/includes/user.php';
+		$user_ids = $wpdb->get_col( $wpdb->prepare(
+			"SELECT wp_user_id FROM {$wpdb->prefix}" . \OSQ\Database\Schema::EMPLOYEES . "
+			 WHERE company_id = %d AND wp_user_id IS NOT NULL AND wp_user_id > 0",
+			(int) $company_id
+		) );
+		foreach ( $user_ids as $uid ) {
+			wp_delete_user( (int) $uid );
+		}
 	}
 
 	/**
@@ -306,14 +348,33 @@ class CompaniesUiHandler {
 		foreach ( $orgs as $org_pair ) {
 			for ( $i = 1; $i <= 5; $i++ ) {
 				$emp_number = sprintf( 'DEMO%03d', $emp_num );
+
+				// Create a login account so demo employees can be used to test
+				// login, password reset, and email flows (Phase 5).
+				$demo_login = 'demo_' . $demo_id . '_' . strtolower( $emp_number );
+				$demo_email = 'demo' . $emp_num . '@wellanc-demo.example';
+				$wp_user_id = wp_insert_user( array(
+					'user_login'   => $demo_login,
+					'user_email'   => $demo_email,
+					'user_pass'    => 'DemoPass' . wp_rand( 1000, 9999 ) . '!',
+					'display_name' => 'デモ従業員' . $emp_num,
+					'role'         => \OSQ\Auth\RoleManager::EMPLOYEE,
+				) );
+				if ( ! is_wp_error( $wp_user_id ) ) {
+					update_user_meta( $wp_user_id, 'osq_company_id', $demo_id );
+				} else {
+					$wp_user_id = null;
+				}
+
 				$wpdb->insert( $emp_table, array(
 					'employee_number' => $emp_number,
 					'company_id'      => $demo_id,
+					'wp_user_id'      => $wp_user_id,
 					'name'            => 'デモ従業員' . $emp_num,
-					'email'           => 'demo' . $emp_num . '@wellanc-demo.example',
+					'email'           => $demo_email,
 					'organization_1'  => $org_pair[0],
 					'organization_2'  => $org_pair[1],
-				), array( '%s', '%d', '%s', '%s', '%s', '%s' ) );
+				), array( '%s', '%d', '%d', '%s', '%s', '%s', '%s' ) );
 
 				$inserted_emp_id = (int) $wpdb->insert_id;
 

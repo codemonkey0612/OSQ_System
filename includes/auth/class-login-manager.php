@@ -81,22 +81,31 @@ class LoginManager {
 			return $user;
 		}
 
-		// Try to find employee record.
-		$osq_plugin = \OSQ\Plugin::get_instance();
-		$employee = $osq_plugin->db()->get_employee_by_number( $username );
+		// Look up the employee ACROSS all tenants. At login time no user is
+		// authenticated yet, so the tenant context is unknown — scoping to the
+		// default company here would block every employee outside company 1.
+		// Employee numbers may collide across companies, so we gather all rows
+		// with this number and authenticate against whichever one's password
+		// matches.
+		global $wpdb;
+		$table = $wpdb->prefix . \OSQ\Database\Schema::EMPLOYEES;
+		$employees = $wpdb->get_results( $wpdb->prepare(
+			"SELECT wp_user_id FROM {$table} WHERE employee_number = %s AND wp_user_id IS NOT NULL",
+			$username
+		) );
 
-		if ( ! $employee || ! $employee->wp_user_id ) {
+		if ( empty( $employees ) ) {
 			return $user;
 		}
 
-		// Use the linked WordPress User ID for authentication.
-		$wp_user = get_user_by( 'id', $employee->wp_user_id );
-		if ( ! $wp_user ) {
-			return $user;
-		}
-
-		if ( wp_check_password( $password, $wp_user->user_pass, $wp_user->ID ) ) {
-			return $wp_user;
+		foreach ( $employees as $employee ) {
+			$wp_user = get_user_by( 'id', $employee->wp_user_id );
+			if ( ! $wp_user ) {
+				continue;
+			}
+			if ( wp_check_password( $password, $wp_user->user_pass, $wp_user->ID ) ) {
+				return $wp_user;
+			}
 		}
 
 		return $user;

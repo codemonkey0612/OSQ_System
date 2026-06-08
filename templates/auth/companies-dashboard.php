@@ -302,6 +302,38 @@ body.osq-body { margin: 0; padding: 0; background: #f8fafc; font-family: 'Inter'
 			</div>
 		</div>
 
+		<!-- Admin provisioning (new company only) -->
+		<div id="field-admin-wrap">
+			<hr style="border:none;border-top:1px solid #e2e8f0;margin:20px 0;">
+			<div style="font-weight:700;color:#1e293b;margin-bottom:12px;font-size:14px;"><?php esc_html_e( '管理者アカウント（新規作成時に自動発行）', 'osq-stress-check' ); ?></div>
+			<div class="form-group">
+				<label class="form-label"><?php esc_html_e( '管理者メールアドレス', 'osq-stress-check' ); ?></label>
+				<input type="email" id="field-admin-email" class="form-input" placeholder="admin@example.co.jp">
+				<small style="color:#64748b;"><?php esc_html_e( '入力すると、初期ID・パスワードが自動発行され、このアドレスへ案内メールが送信されます。', 'osq-stress-check' ); ?></small>
+			</div>
+			<div class="form-group">
+				<label class="form-label"><?php esc_html_e( '管理者氏名', 'osq-stress-check' ); ?></label>
+				<input type="text" id="field-admin-name" class="form-input" placeholder="山田 太郎">
+			</div>
+		</div>
+
+		<hr style="border:none;border-top:1px solid #e2e8f0;margin:20px 0;">
+		<div style="font-weight:700;color:#1e293b;margin-bottom:12px;font-size:14px;"><?php esc_html_e( '連絡先（面接指導・問い合わせ用）', 'osq-stress-check' ); ?></div>
+		<div class="form-group">
+			<label class="form-label"><?php esc_html_e( '担当者名', 'osq-stress-check' ); ?></label>
+			<input type="text" id="field-contact-name" class="form-input" placeholder="人事部 鈴木">
+		</div>
+		<div class="form-row">
+			<div class="form-group">
+				<label class="form-label"><?php esc_html_e( '電話番号', 'osq-stress-check' ); ?></label>
+				<input type="text" id="field-contact-phone" class="form-input" placeholder="03-1234-5678">
+			</div>
+			<div class="form-group">
+				<label class="form-label"><?php esc_html_e( 'メールアドレス', 'osq-stress-check' ); ?></label>
+				<input type="email" id="field-contact-email" class="form-input" placeholder="jinji@example.co.jp">
+			</div>
+		</div>
+
 		<div class="form-group" id="field-active-wrap" style="display:none;">
 			<label class="form-label">
 				<input type="checkbox" id="field-active" checked style="margin-right:6px;">
@@ -339,6 +371,12 @@ body.osq-body { margin: 0; padding: 0; background: #f8fafc; font-family: 'Inter'
 		$('#field-org4').val(isEdit ? (company.org_label_4 || '') : '');
 		$('#field-org5').val(isEdit ? (company.org_label_5 || '') : '');
 		$('#field-min-group').val(isEdit ? company.min_group_size : 5);
+		$('#field-contact-name').val(isEdit ? (company.contact_name || '') : '');
+		$('#field-contact-phone').val(isEdit ? (company.contact_phone || '') : '');
+		$('#field-contact-email').val(isEdit ? (company.contact_email || '') : '');
+		$('#field-admin-email').val('');
+		$('#field-admin-name').val('');
+		$('#field-admin-wrap').toggle(!isEdit); // admin provisioning only on create
 		$('#field-active').prop('checked', isEdit ? company.is_active == 1 : true);
 		$('#field-active-wrap').toggle(isEdit);
 		$('#company-modal').addClass('open');
@@ -389,9 +427,20 @@ body.osq-body { margin: 0; padding: 0; background: #f8fafc; font-family: 'Inter'
 			org_label_4:  $('#field-org4').val(),
 			org_label_5:  $('#field-org5').val(),
 			min_group_size: $('#field-min-group').val(),
+			contact_name:  $('#field-contact-name').val(),
+			contact_phone: $('#field-contact-phone').val(),
+			contact_email: $('#field-contact-email').val(),
+			admin_email:   $('#field-admin-email').val(),
+			admin_name:    $('#field-admin-name').val(),
 			is_active:    $('#field-active').is(':checked') ? 1 : 0,
 		}).done(function(res) {
 			if (res.success) {
+				var p = res.data && res.data.provision;
+				if (p && p.ok) {
+					alert('<?php esc_html_e( '企業を作成し、管理者へ案内メールを送信しました。ログインID：', 'osq-stress-check' ); ?>' + p.login_id);
+				} else if (p && !p.ok) {
+					alert('<?php esc_html_e( '企業は作成されましたが、管理者アカウントの発行に失敗しました：', 'osq-stress-check' ); ?>' + p.message);
+				}
 				closeModal();
 				location.reload();
 			} else {
