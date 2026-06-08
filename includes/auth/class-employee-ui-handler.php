@@ -203,29 +203,40 @@ class EmployeeUiHandler {
 			$this->redirect_back_with_error( 'locked_out' );
 		}
 
-		$db       = \OSQ\Plugin::get_instance()->db();
-		$employee = $db->get_employee_by_number( $employee_number );
+		// Cross-tenant lookup: at login time the tenant context is unknown, so we
+		// must search ALL companies by employee number (scoping to the default
+		// company would block every user outside company 1). Employee numbers can
+		// collide across companies, so we gather all candidates and sign in the
+		// one whose password matches.
+		global $wpdb;
+		$emp_table  = $wpdb->prefix . \OSQ\Database\Schema::EMPLOYEES;
+		$candidates = $wpdb->get_results( $wpdb->prepare(
+			"SELECT wp_user_id FROM {$emp_table} WHERE employee_number = %s AND wp_user_id IS NOT NULL",
+			$employee_number
+		) );
 
-		if ( ! $employee || ! $employee->wp_user_id ) {
+		if ( empty( $candidates ) ) {
 			LoginManager::record_failed_attempt();
 			$this->redirect_back_with_error( 'invalid_credentials' );
 		}
 
-		$user = get_userdata( $employee->wp_user_id );
-
-		if ( ! $user ) {
-			LoginManager::record_failed_attempt();
-			$this->redirect_back_with_error( 'invalid_credentials' );
+		$user_signon = null;
+		foreach ( $candidates as $cand ) {
+			$candidate_user = get_userdata( (int) $cand->wp_user_id );
+			if ( ! $candidate_user ) {
+				continue;
+			}
+			if ( wp_check_password( $password, $candidate_user->user_pass, $candidate_user->ID ) ) {
+				// Establish the authenticated session.
+				wp_set_current_user( $candidate_user->ID );
+				wp_set_auth_cookie( $candidate_user->ID, true, is_ssl() );
+				do_action( 'wp_login', $candidate_user->user_login, $candidate_user );
+				$user_signon = $candidate_user;
+				break;
+			}
 		}
 
-		// Perform native sign-on using the located user_login.
-		$user_signon = wp_signon( array(
-			'user_login'    => $user->user_login,
-			'user_password' => $password,
-			'remember'      => true,
-		), is_ssl() );
-
-		if ( is_wp_error( $user_signon ) ) {
+		if ( ! $user_signon ) {
 			LoginManager::record_failed_attempt();
 			$this->redirect_back_with_error( 'invalid_credentials' );
 		}

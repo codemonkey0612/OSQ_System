@@ -80,6 +80,16 @@ class AdminMenu {
 			array( $this, 'render_ngwords' )
 		);
 
+		// Submenu: email settings + master templates (Phase 5).
+		add_submenu_page(
+			self::MENU_SLUG . '-settings',
+			__( 'メール設定・テンプレート管理', 'osq-stress-check' ),
+			__( 'メール設定', 'osq-stress-check' ),
+			'osq_system_config',
+			self::MENU_SLUG . '-email',
+			array( $this, 'render_email_settings' )
+		);
+
 		// Note: Dashboard, CSV Import, Group Analysis, Individual Responses, and Support
 		// interface menu pages have been removed from the default WP Admin.
 		// These features are now exclusively accessible via the custom standalone portals.
@@ -120,5 +130,17 @@ class AdminMenu {
 			wp_die( esc_html__( 'Access denied.', 'osq-stress-check' ) );
 		}
 		( new NgwordPage() )->render();
+	}
+
+	/**
+	 * Render the email settings + templates page (Phase 5).
+	 *
+	 * @return void
+	 */
+	public function render_email_settings() {
+		if ( ! current_user_can( 'osq_system_config' ) ) {
+			wp_die( esc_html__( 'Access denied.', 'osq-stress-check' ) );
+		}
+		( new EmailSettingsPage() )->render();
 	}
 }

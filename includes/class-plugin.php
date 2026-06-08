@@ -71,6 +71,7 @@ class Plugin {
 		( new Auth\OfficerUiHandler() )->init();
 		( new Auth\CompaniesUiHandler() )->init();
 		( new Auth\UnifiedDashboardHandler() )->init();
+		( new Auth\PasswordResetHandler() )->init();
 		( new Auth\PortalRouter() )->init();
 
 		// Initialize questionnaire handler (AJAX endpoints).
@@ -85,12 +86,17 @@ class Plugin {
 		// Initialize AI job runner (registers WP-Cron hook — runs on both admin and frontend).
 		( new AI\AdviceJobRunner() )->init();
 
+		// Phase 5: email delivery (SMTP) + reminder scheduler.
+		( new Email\EmailService() )->init();
+		( new Email\ReminderScheduler() )->init();
+
 		// Admin-only hooks — gated behind is_admin() to reduce frontend overhead.
 		if ( is_admin() ) {
 			( new \OSQ\Admin\AdminMenu() )->init();
 			( new \OSQ\Admin\SettingsPage() )->init();
 			( new \OSQ\Admin\AiPromptsPage() )->init();
 			( new \OSQ\Admin\NgwordPage() )->init();
+			( new \OSQ\Admin\EmailSettingsPage() )->init();
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 		}
 
