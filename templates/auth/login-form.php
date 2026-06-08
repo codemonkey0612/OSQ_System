@@ -96,7 +96,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</form>
 
 		<div class="osq-login-footer">
-			<p><?php esc_html_e( 'パスワードをお忘れの場合は、管理者にお問い合わせください。', 'osq-stress-check' ); ?></p>
+			<p><a href="<?php echo esc_url( home_url( '/' . \OSQ\Auth\PasswordResetHandler::SLUG . '/' ) ); ?>"><?php esc_html_e( 'パスワードをお忘れの方はこちら', 'osq-stress-check' ); ?></a></p>
 		</div>
 	</div>
 </div>

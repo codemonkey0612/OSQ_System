@@ -27,7 +27,7 @@ $accessible_panels = array();
 if ( $can_take_test || $can_view_results ) { $accessible_panels[] = 'my-check'; }
 if ( $can_view_responses )                 { $accessible_panels[] = 'responses'; }
 if ( $can_follow_up )                      { $accessible_panels[] = 'followup'; }
-if ( $can_manage_emp )                     { $accessible_panels[] = 'employees'; $accessible_panels[] = 'import'; }
+if ( $can_manage_emp )                     { $accessible_panels[] = 'employees'; $accessible_panels[] = 'import'; $accessible_panels[] = 'email'; }
 if ( $can_analysis )                       { $accessible_panels[] = 'analysis'; }
 if ( $can_settings )                       { $accessible_panels[] = 'settings'; }
 $accessible_panels[] = 'profile';
@@ -131,6 +131,7 @@ $panel_titles = array(
 	'followup'  => __( 'フォローアップ管理', 'osq-stress-check' ),
 	'employees' => __( '従業員管理', 'osq-stress-check' ),
 	'import'    => __( 'CSVインポート', 'osq-stress-check' ),
+	'email'     => __( 'メール配信', 'osq-stress-check' ),
 	'analysis'  => __( '集計・分析', 'osq-stress-check' ),
 	'settings'  => __( '設定', 'osq-stress-check' ),
 	'profile'   => __( 'プロフィール', 'osq-stress-check' ),
@@ -189,6 +190,10 @@ add_filter( 'show_admin_bar', '__return_false' );
 				<li class="<?php echo 'import' === $initial_panel ? 'active' : ''; ?>" data-panel="import">
 					<span class="dashicons dashicons-upload"></span>
 					<span><?php esc_html_e( 'CSVインポート', 'osq-stress-check' ); ?></span>
+				</li>
+				<li class="<?php echo 'email' === $initial_panel ? 'active' : ''; ?>" data-panel="email">
+					<span class="dashicons dashicons-email"></span>
+					<span><?php esc_html_e( 'メール配信', 'osq-stress-check' ); ?></span>
 				</li>
 				<?php endif; ?>
 
@@ -632,6 +637,52 @@ add_filter( 'show_admin_bar', '__return_false' );
 							<tr><td colspan="5" class="osq-empty-table"><?php esc_html_e( '読み込み中...', 'osq-stress-check' ); ?></td></tr>
 						</tbody>
 					</table>
+				</div>
+			</section>
+			<?php endif; ?>
+
+			<!-- ── EMAIL DISTRIBUTION (Phase 5) ─────────────────────────── -->
+			<?php if ( $can_manage_emp ) : ?>
+			<section id="ud-panel-email" class="ud-panel <?php echo 'email' === $initial_panel ? 'active' : ''; ?>">
+				<div class="osq-panel-card" style="max-width:760px;">
+					<h3 style="margin-top:0;"><?php esc_html_e( '受検案内メールの一斉配信', 'osq-stress-check' ); ?></h3>
+					<p style="color:#64748b;font-size:13px;line-height:1.7;">
+						<?php esc_html_e( '従業員へ受検案内メールを送信します。下記の文面はマスターテンプレートをもとに自動表示されています。必要に応じて編集し、送信してください。', 'osq-stress-check' ); ?>
+					</p>
+
+					<div style="display:flex;gap:16px;flex-wrap:wrap;margin:16px 0;">
+						<div style="flex:1;min-width:160px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px;">
+							<div style="font-size:12px;color:#64748b;"><?php esc_html_e( 'メールアドレス登録済み', 'osq-stress-check' ); ?></div>
+							<div style="font-size:22px;font-weight:700;" id="osq-email-total">—</div>
+						</div>
+						<div style="flex:1;min-width:160px;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:14px;">
+							<div style="font-size:12px;color:#9a3412;"><?php esc_html_e( '未受検者', 'osq-stress-check' ); ?></div>
+							<div style="font-size:22px;font-weight:700;color:#ea580c;" id="osq-email-nonresp">—</div>
+						</div>
+					</div>
+
+					<div class="osq-form-row">
+						<label><?php esc_html_e( '受検締切日', 'osq-stress-check' ); ?></label>
+						<input type="date" id="osq-email-deadline" class="osq-input-small">
+					</div>
+					<div class="osq-form-row">
+						<label><?php esc_html_e( '件名', 'osq-stress-check' ); ?></label>
+						<input type="text" id="osq-email-subject" class="osq-input" style="width:100%;">
+					</div>
+					<div class="osq-form-row">
+						<label><?php esc_html_e( '本文', 'osq-stress-check' ); ?></label>
+						<textarea id="osq-email-body" rows="16" class="osq-textarea" style="width:100%;font-size:13px;line-height:1.7;"></textarea>
+						<small style="color:#64748b;"><?php esc_html_e( '使用可能な変数: {会社名} {氏名} {受検URL} {締切日} {FAQ_URL} {問い合わせ先}', 'osq-stress-check' ); ?></small>
+					</div>
+
+					<div class="osq-form-actions" style="display:flex;gap:12px;flex-wrap:wrap;">
+						<button type="button" id="osq-send-invitations" class="osq-button osq-button--primary"><?php esc_html_e( '受検案内を一斉送信', 'osq-stress-check' ); ?></button>
+						<button type="button" id="osq-send-reminders" class="osq-button osq-button--secondary"><?php esc_html_e( '未受検者へリマインド送信', 'osq-stress-check' ); ?></button>
+					</div>
+					<div id="osq-email-message" class="osq-settings-message" style="display:none;margin-top:15px;"></div>
+					<p style="color:#94a3b8;font-size:12px;margin-top:16px;">
+						<?php esc_html_e( '※ リマインドは未受検者へ自動でも配信されます（開始3日後・7日後・締切3日前）。', 'osq-stress-check' ); ?>
+					</p>
 				</div>
 			</section>
 			<?php endif; ?>
@@ -1223,6 +1274,7 @@ jQuery(document).ready(function($) {
 		if (!panelId) return;
 		switchPanel(panelId);
 		if (panelId === 'settings') { $('#osq-load-labor-report').trigger('click'); }
+		if (panelId === 'email') { if (typeof loadEmailPanel === 'function') loadEmailPanel(); }
 	});
 
 	// ── Mobile hamburger ─────────────────────────────────────────────────────
@@ -1292,7 +1344,7 @@ jQuery(document).ready(function($) {
 						if (v) { orgParts.push($('<div/>').html(v).text()); }
 					}
 					var orgDisplay = orgParts.length ? orgParts.join(' › ') : '-';
-					$tbody.append('<tr><td>' + emp.employee_number + '</td><td><strong>' + decodedName + '</strong></td><td>' + orgDisplay + '</td><td>' + statusLabel + '</td><td>' + (emp.completed_at || '-') + '</td><td><button class="osq-button osq-button--danger osq-button--small osq-delete-employee" data-id="' + emp.employee_id + '">' + i18n.csv_delete + '</button></td></tr>');
+					$tbody.append('<tr><td>' + emp.employee_number + '</td><td><strong>' + decodedName + '</strong></td><td>' + orgDisplay + '</td><td>' + statusLabel + '</td><td>' + (emp.completed_at || '-') + '</td><td style="white-space:nowrap;"><button class="osq-button osq-button--secondary osq-button--small osq-reset-employee" data-id="' + emp.employee_id + '" style="margin-right:6px;">パスワード再発行</button><button class="osq-button osq-button--danger osq-button--small osq-delete-employee" data-id="' + emp.employee_id + '">' + i18n.csv_delete + '</button></td></tr>');
 				});
 			}
 		});
@@ -1403,6 +1455,30 @@ jQuery(document).ready(function($) {
 				else { alert('Error: ' + response.data.message); $btn.prop('disabled', false).text(i18n.csv_delete); }
 			},
 			error: function() { alert('System error.'); $btn.prop('disabled', false).text(i18n.csv_delete); }
+		});
+	});
+
+	// Force-reset an employee's password (Phase 5).
+	$(document).on('click', '.osq-reset-employee', function(e) {
+		e.preventDefault();
+		var $btn = $(this);
+		var empId = $btn.data('id');
+		if (!confirm('この従業員のパスワードを再発行しますか？新しいパスワードが発行され、登録メールアドレスへ通知されます。')) return;
+		$btn.prop('disabled', true).text('処理中...');
+		$.ajax({
+			url: ajaxVars.ajax_url, type: 'POST',
+			data: { action: 'osq_admin_force_reset', nonce: ajaxVars.nonce, employee_id: empId },
+			success: function(response) {
+				if (response.success) {
+					var msg = '新しいパスワード：' + response.data.password;
+					msg += response.data.emailed ? '\n（登録メールアドレスへ通知を送信しました）' : '\n（メール未登録のため、上記を直接お伝えください）';
+					alert(msg);
+				} else {
+					alert('エラー：' + ((response.data && response.data.message) || '再発行に失敗しました。'));
+				}
+				$btn.prop('disabled', false).text('パスワード再発行');
+			},
+			error: function() { alert('通信エラーが発生しました。'); $btn.prop('disabled', false).text('パスワード再発行'); }
 		});
 	});
 	<?php endif; // can_manage_emp ?>
@@ -1777,6 +1853,55 @@ jQuery(document).ready(function($) {
 				$('#lr-physician').text(d.physician_name);
 			}
 		}).always(function() { $btn.prop('disabled', false).text('最新データを取得'); });
+	});
+
+	/* ── Email distribution panel (Phase 5) ─────────────────────────── */
+	window.loadEmailPanel = function loadEmailPanel() {
+		$.get(osq_admin_vars.ajax_url, { action: 'osq_admin_get_email_panel', nonce: osq_admin_vars.nonce })
+		.done(function(res) {
+			if (!res.success) return;
+			var d = res.data;
+			$('#osq-email-total').text(d.total_with_email);
+			$('#osq-email-nonresp').text(d.non_respondents);
+			if (!$('#osq-email-subject').val()) { $('#osq-email-subject').val(d.invite_subject); }
+			if (!$('#osq-email-body').val())    { $('#osq-email-body').val(d.invite_body); }
+			if (d.deadline) { $('#osq-email-deadline').val(String(d.deadline).substring(0,10)); }
+		});
+	};
+
+	function emailMsg(ok, text) {
+		$('#osq-email-message').removeClass('osq-message--success osq-message--error')
+			.addClass(ok ? 'osq-message--success' : 'osq-message--error').text(text).show();
+	}
+
+	$(document).on('click', '#osq-send-invitations', function() {
+		var $btn = $(this);
+		var total = $('#osq-email-total').text();
+		if (!confirm('メールアドレス登録済みの ' + total + ' 名へ受検案内を送信します。よろしいですか？')) return;
+		$btn.prop('disabled', true).text('送信中...');
+		$.post(osq_admin_vars.ajax_url, {
+			action: 'osq_admin_send_invitations', nonce: osq_admin_vars.nonce,
+			subject: $('#osq-email-subject').val(),
+			body: $('#osq-email-body').val(),
+			deadline: $('#osq-email-deadline').val()
+		}).done(function(res) {
+			if (res.success) { emailMsg(true, res.data.sent + ' / ' + res.data.total + ' 件の受検案内を送信しました。'); }
+			else { emailMsg(false, (res.data && res.data.message) || '送信に失敗しました。'); }
+		}).fail(function(){ emailMsg(false, '通信エラーが発生しました。'); })
+		.always(function(){ $btn.prop('disabled', false).text('受検案内を一斉送信'); });
+	});
+
+	$(document).on('click', '#osq-send-reminders', function() {
+		var $btn = $(this);
+		var n = $('#osq-email-nonresp').text();
+		if (!confirm('未受検者 ' + n + ' 名へリマインドを送信します。よろしいですか？')) return;
+		$btn.prop('disabled', true).text('送信中...');
+		$.post(osq_admin_vars.ajax_url, { action: 'osq_admin_send_reminders_now', nonce: osq_admin_vars.nonce })
+		.done(function(res) {
+			if (res.success) { emailMsg(true, res.data.sent + ' 件のリマインドを送信しました。'); }
+			else { emailMsg(false, (res.data && res.data.message) || '送信に失敗しました。'); }
+		}).fail(function(){ emailMsg(false, '通信エラーが発生しました。'); })
+		.always(function(){ $btn.prop('disabled', false).text('未受検者へリマインド送信'); });
 	});
 
 	/* Spin animation */
